@@ -1,17 +1,17 @@
 # myportofolio_mobile
 
-A new Flutter project.
+Aplikasi mobile portofolio pribadi yang dibangun menggunakan Flutter.
 
-## Getting Started
+## Identitas
 
-This project is a starting point for a Flutter application.
+| | |
+|---|---|
+| **Nama** | Salwa Alifia Putri |
+| **NPM** | 2506620280 |
+| **Kelas** | PBP A |
 
-A few resources to get you started if this is your first Flutter project:
+## Tugas
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Proyek ini dikerjakan untuk mata kuliah **Pemrograman Berbasis Platform (CSGE602022)**,
+Fakultas Ilmu Komputer, Universitas Indonesia, Semester Gasal 2026/2027,
+yaitu **Tutorial 08: Basic Flutter**.
