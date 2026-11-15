@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/menu.dart';
 
+/// Titik masuk aplikasi: fungsi pertama yang dijalankan Flutter.
 void main() {
   runApp(const MyApp());
 }
 
+/// Widget akar aplikasi.
+///
+/// Membungkus aplikasi dengan [MaterialApp] yang menyediakan tema Material 3
+/// (skema warna dari seed indigo) dan menetapkan [MyHomePage] sebagai halaman
+/// awal.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

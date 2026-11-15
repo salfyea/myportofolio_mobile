@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Halaman menu utama MyPortfolio Mobile.
+///
+/// Berupa [StatelessWidget] karena seluruh isinya statis (identitas pemilik dan
+/// daftar tombol) sehingga tidak perlu menyimpan state yang berubah.
+///
+/// Susunan halaman: [InfoCard] identitas di bagian atas, pesan sambutan, lalu
+/// kisi [ItemCard] untuk tiap menu portofolio.
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
 
@@ -7,6 +14,10 @@ class MyHomePage extends StatelessWidget {
   final String nama = "Salwa Alifia Putri";
   final String kelas = "PBP A";
 
+  /// Daftar menu aksi yang ditampilkan sebagai kisi tombol.
+  ///
+  /// Setiap [ItemHomepage] membawa nama, ikon, dan warnanya sendiri, sehingga
+  /// menambah tombol baru cukup dengan menambah satu baris di daftar ini.
   final List<ItemHomepage> items = [
     ItemHomepage("Lihat Experience", Icons.work, Colors.blue.shade700),
     ItemHomepage("Lihat Proyek", Icons.folder, Colors.deepPurple.shade500),
@@ -96,6 +107,10 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
+/// Kartu kecil yang menampilkan sepasang [title] dan [content].
+///
+/// Dipakai ulang (reusable) untuk NPM, nama, dan kelas agar tidak ada kode
+/// kartu yang berulang.
 class InfoCard extends StatelessWidget {
   // Kartu informasi yang menampilkan judul (title) dan isi (content).
   final String title;
@@ -128,6 +143,8 @@ class InfoCard extends StatelessWidget {
   }
 }
 
+/// Model data untuk satu tombol menu: [name] sebagai teks, [icon] sebagai
+/// ikon, dan [color] sebagai warna latar kartunya.
 class ItemHomepage {
   final String name;
   final IconData icon;
@@ -136,6 +153,10 @@ class ItemHomepage {
   ItemHomepage(this.name, this.icon, this.color);
 }
 
+/// Kartu tombol menu berwarna yang dibangun dari sebuah [ItemHomepage].
+///
+/// Saat ditekan, kartu menampilkan SnackBar berisi nama tombol. Warna kartu
+/// diambil dari [ItemHomepage.color], tanpa percabangan if-else per tombol.
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
