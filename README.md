@@ -1,6 +1,6 @@
 # MyPortfolio Mobile
 
-Aplikasi mobile portofolio pribadi yang dibangun dengan **Flutter**. Aplikasi ini adalah klien mobile dari website portofolio Django saya ([myportofolio](https://github.com/salfyea/myportofolio)) dan dikembangkan bertahap mengikuti tutorial serta tugas mata kuliah **Pemrograman Berbasis Platform (CSGE602022)**, Fakultas Ilmu Komputer, Universitas Indonesia, Semester Gasal 2026/2027.
+Aplikasi mobile portofolio pribadi yang dibangun dengan **Flutter**. Aplikasi ini adalah klien mobile dari website portofolio Django saya ([myportofolio](https://github.com/salfyea/myportofolio)) dan dikembangkan bertahap mengikuti tutorial serta tugas mata kuliah **Pemrograman Berbasis Platform (CSGE602022)**, Semester Gasal 2026/2027.
 
 [Identitas](#identitas-diri) · [Tentang Proyek](#tentang-proyek) · [Perkembangan](#perkembangan-proyek) · [Menjalankan Proyek](#menjalankan-proyek) · [Refleksi Mingguan](#refleksi-mingguan) · [Penggunaan AI](#ai-disclosure)
 
@@ -14,7 +14,6 @@ Aplikasi mobile portofolio pribadi yang dibangun dengan **Flutter**. Aplikasi in
 | NPM | 2506620280 |
 | Kelas | PBP A |
 | Program Studi | S1 Sistem Informasi |
-| Institusi | Universitas Indonesia |
 
 ---
 
@@ -221,6 +220,20 @@ Saya tidak memakai satu prompt besar untuk semuanya. Pola yang saya pakai (conto
 - **Aturan di depan:** tanpa atribusi AI di commit, berkas tutorial tidak boleh masuk repositori, satu bagian satu branch, dan **berhenti dan kabari saya** jika ada konflik atau keputusan ambigu.
 - **Rencana dulu:** pada Tugas 7 saya meminta rencana lebih dulu, dengan rubrik sebagai acuan. AI mengajukan pertanyaan keputusan sebelum mengerjakan.
 - **Pertanyakan klaim:** misalnya "ini beneran gpp kah" untuk test yang gagal dan "udah di merge belum ya ke main" sebelum submit.
+
+---
+
+## Belajar Menggunakan AI
+
+Selain membantu implementasi, saya memakai AI sebagai **alat belajar**, bukan hanya untuk menyerahkan pekerjaan. Hal yang benar-benar saya lakukan:
+
+- **Meminta rencana dijelaskan sebelum dikerjakan.** Pada Tugas 7 saya meminta penjelasan rencana lebih dulu dan menulis "sekalian ajarin aku", supaya saya paham alasan di balik tiap langkah, bukan hanya hasil akhirnya.
+- **Menanyakan hal yang belum saya mengerti.** Contohnya menanyakan maksud istilah tugas ("IA7 apa") dan maksud pilihan yang diajukan AI (6 tombol, `childAspectRatio`, test baru) sebelum memutuskan.
+- **Meminta bahan belajar dari hasil kerja.** Saya meminta PDF ringkasan Tutorial 08 dan Tugas 7 untuk persiapan quiz dan UTS: konsep widget tree, `StatelessWidget` vs `StatefulWidget`, `BuildContext`, hot reload vs hot restart, dan alasan tiap baris kode ditulis. PDF ini tidak termasuk repositori.
+- **Meminta soal latihan coding** (membaca kode, mengisi bagian kosong, mencari bug) untuk menguji apakah saya paham kode, sintaks, dan alurnya sendiri.
+- **Mempertanyakan klaim AI,** misalnya soal test bawaan yang gagal dan status merge ke `main`, lalu memeriksa hasilnya sendiri (menjalankan aplikasi di Chrome dan membaca `git log`).
+
+Jawaban reflektif pada [Tugas 7](#tugas-7) saya jadikan bahan belajar: saya membacanya, membandingkannya dengan kode yang berjalan, dan memakainya untuk memahami konsepnya.
 
 ---
 
