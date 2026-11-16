@@ -35,71 +35,84 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'MyPortfolio',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       // Body halaman utama dengan padding di sekelilingnya.
       // SingleChildScrollView agar halaman bisa di-scroll saat konten melebihi layar.
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Baris horizontal untuk menampilkan 3 InfoCard secara sejajar.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        // Center + ConstrainedBox membatasi lebar konten (maks. 600) agar kartu
+        // tidak melebar berlebihan di layar lebar seperti browser/desktop.
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Flexible mencegah Row overflow di layar sempit (lebar kartu
-                  // otomatis mengecil jika ruang tidak cukup).
-                  Flexible(child: InfoCard(title: 'NPM', content: npm)),
-                  Flexible(child: InfoCard(title: 'Name', content: nama)),
-                  Flexible(child: InfoCard(title: 'Class', content: kelas)),
+                  // Baris horizontal untuk menampilkan 3 InfoCard secara sejajar.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Flexible mencegah Row overflow di layar sempit (lebar kartu
+                      // otomatis mengecil jika ruang tidak cukup).
+                      Flexible(
+                        child: InfoCard(title: 'NPM', content: npm),
+                      ),
+                      Flexible(
+                        child: InfoCard(title: 'Name', content: nama),
+                      ),
+                      Flexible(
+                        child: InfoCard(title: 'Class', content: kelas),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16.0),
+
+                  // Bagian tengah: pesan sambutan dan kisi tombol menu portofolio.
+                  Center(
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 16.0),
+                          child: Text(
+                            'Selamat datang di MyPortfolio Mobile!',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.0,
+                            ),
+                          ),
+                        ),
+
+                        // GridView menampilkan kartu tombol dalam tata letak kisi 3 kolom.
+                        GridView.count(
+                          // Scroll ditangani SingleChildScrollView di luar, bukan grid ini.
+                          primary: false,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 20,
+                          ),
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          crossAxisCount: 3,
+                          // Rasio lebar:tinggi tiap kartu agar isi (ikon + teks) muat.
+                          childAspectRatio: 0.9,
+                          // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
+                          shrinkWrap: true,
+                          children: items.map((ItemHomepage item) {
+                            return ItemCard(item);
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-  
-              const SizedBox(height: 16.0),
-  
-              // Bagian tengah: pesan sambutan dan kisi tombol menu portofolio.
-              Center(
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16.0),
-                      child: Text(
-                        'Selamat datang di MyPortfolio Mobile!',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18.0,
-                        ),
-                      ),
-                    ),
-  
-                    // GridView menampilkan kartu tombol dalam tata letak kisi 3 kolom.
-                    GridView.count(
-                      // Scroll ditangani SingleChildScrollView di luar, bukan grid ini.
-                    primary: false,
-                    physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      crossAxisCount: 3,
-                    // Rasio lebar:tinggi tiap kartu agar isi (ikon + teks) muat.
-                    childAspectRatio: 0.9,
-                      // shrinkWrap agar ukuran kisi menyesuaikan tinggi konten anak.
-                      shrinkWrap: true,
-                      children: items.map((ItemHomepage item) {
-                        return ItemCard(item);
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -130,10 +143,7 @@ class InfoCard extends StatelessWidget {
         // Menyusun teks title dan content secara vertikal.
         child: Column(
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8.0),
             Text(content),
           ],
@@ -175,7 +185,9 @@ class ItemCard extends StatelessWidget {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
+              SnackBar(
+                content: Text("Kamu telah menekan tombol ${item.name}!"),
+              ),
             );
         },
         child: Container(
@@ -184,11 +196,7 @@ class ItemCard extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  item.icon,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
+                Icon(item.icon, color: Colors.white, size: 30.0),
                 const Padding(padding: EdgeInsets.all(3)),
                 Text(
                   item.name,
