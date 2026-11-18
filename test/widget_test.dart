@@ -3,11 +3,11 @@
 // Menguji halaman menu utama (MyHomePage): kartu profil, tombol aksi,
 // warna unik tiap tombol, dan SnackBar saat tombol ditekan.
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:myportofolio_mobile/main.dart';
-import 'package:myportofolio_mobile/menu.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
 
 /// Mengatur ukuran layar virtual (dalam piksel logis) untuk satu test.
 void setScreenSize(WidgetTester tester, Size size) {
@@ -18,6 +18,7 @@ void setScreenSize(WidgetTester tester, Size size) {
 }
 
 void main() {
+  formTests();
   testWidgets('menampilkan identitas pemilik pada tiga InfoCard', (tester) async {
     await tester.pumpWidget(const MyApp());
 
@@ -50,6 +51,14 @@ void main() {
 
       expect(find.text('Kamu telah menekan tombol ${item.name}!'),
           findsOneWidget);
+
+      // "Tambah Proyek" membuka halaman form; kembali ke menu dengan Back.
+      if (item.name == 'Tambah Proyek') {
+        await tester.pumpAndSettle();
+        expect(find.text('Add Project Form'), findsOneWidget);
+        Navigator.of(tester.element(find.text('Add Project Form'))).pop();
+        await tester.pumpAndSettle();
+      }
     }
   });
 
@@ -91,5 +100,83 @@ void main() {
     );
     expect(find.text('Logout'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+}
+
+void formTests() {
+  testWidgets('setelah OK, isian lama tidak terbawa ke simpan berikutnya',
+      (tester) async {
+    setScreenSize(tester, const Size(800, 1200));
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nama Proyek'), 'A');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Deskripsi Proyek'), 'B');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Teknologi yang Digunakan'), 'Flutter');
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Other').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kategori: Other'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    // Isi ulang hanya field wajib; kategori dan teknologi harus kembali default.
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nama Proyek'), 'C');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Deskripsi Proyek'), 'D');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kategori: Web Development'), findsOneWidget);
+    expect(find.text('Teknologi: '), findsOneWidget);
+  });
+
+  testWidgets('Tambah Proyek membuka form, validasi, dan pop-up data',
+      (tester) async {
+    setScreenSize(tester, const Size(800, 1200));
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add Project Form'), findsOneWidget);
+
+    // Simpan dengan field kosong -> pesan validasi.
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nama Proyek'), 'Burhanpedia');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Deskripsi Proyek'), 'Toko online');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+    expect(find.text('Nama Proyek: Burhanpedia'), findsOneWidget);
+    expect(find.text('Kategori: Web Development'), findsOneWidget);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+  });
+
+  testWidgets('drawer berpindah antara Home dan Add Project', (tester) async {
+    setScreenSize(tester, const Size(800, 1200));
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    // Font tes (Ahem) lebih lebar dari font asli sehingga header drawer overflow.
+    while (tester.takeException() != null) {}
+    await tester.tap(find.text('Add Project'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add Project Form'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    while (tester.takeException() != null) {}
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
   });
 }
