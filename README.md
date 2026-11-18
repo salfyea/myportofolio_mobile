@@ -33,8 +33,13 @@ Halaman utama aplikasi menampilkan identitas pemilik portofolio pada tiga kartu 
 
 ```text
 lib/
-├── main.dart          # Titik masuk: main(), MyApp (MaterialApp + tema)
-└── menu.dart          # MyHomePage, InfoCard, ItemHomepage, ItemCard
+├── main.dart                  # Titik masuk: main(), MyApp (MaterialApp + tema)
+├── screens/
+│   ├── menu.dart              # MyHomePage, InfoCard, ItemHomepage
+│   └── project_form.dart      # ProjectFormPage (form tambah proyek)
+└── widgets/
+    ├── left_drawer.dart       # LeftDrawer (navigasi Home / Add Project)
+    └── project_card.dart      # ItemCard
 test/
 └── widget_test.dart   # Smoke test halaman menu
 docs/
@@ -57,6 +62,7 @@ docs/
 | --- | --- |
 | **Tutorial 8** | Setup Flutter dan Dart, inisialisasi proyek `myportofolio_mobile`, pemisahan `menu.dart` dari `main.dart`, perubahan tema warna, perubahan `MyHomePage` menjadi `StatelessWidget`, pembuatan `InfoCard` dan `ItemCard`, serta SnackBar. |
 | **Tugas 7** | Atribut `color` pada `ItemHomepage` agar tiap tombol berwarna unik tanpa percabangan if-else, enam tombol yang mengikuti bagian portofolio Django, halaman yang dapat di-scroll dengan `childAspectRatio` kartu, perbaikan overflow `InfoCard` di layar sempit, docstring, dan widget test baru. |
+| **Tutorial 9** | Drawer menu (`LeftDrawer`), navigasi `push`/`pushReplacement`/`pop`, form tambah proyek (`Form`, `TextFormField`, `DropdownButtonFormField`, validasi), pop-up `AlertDialog` berisi data isian, migrasi impor ke `material_ui`, dan refactoring ke direktori `screens/` dan `widgets/`. |
 | **Tugas berikutnya** | Akan ditambahkan pada bagian ini. |
 
 ---
