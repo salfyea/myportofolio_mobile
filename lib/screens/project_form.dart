@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/utils/validators.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 /// Halaman form untuk menambahkan proyek baru ke portofolio.
@@ -62,12 +63,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       _projectName = value!;
                     });
                   },
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Nama proyek tidak boleh kosong!";
-                    }
-                    return null;
-                  },
+                  // Batas 200 karakter mengikuti model Project di Django.
+                  validator: (String? value) =>
+                      validateRequired(value, 'Nama proyek', maxLength: 200),
                 ),
               ),
 
@@ -88,12 +86,8 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       _description = value!;
                     });
                   },
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Deskripsi proyek tidak boleh kosong!";
-                    }
-                    return null;
-                  },
+                  validator: (String? value) =>
+                      validateRequired(value, 'Deskripsi proyek'),
                 ),
               ),
 
@@ -157,6 +151,9 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                       _projectLink = value!;
                     });
                   },
+                  // Opsional, tetapi jika diisi harus berupa URL http/https.
+                  validator: (String? value) =>
+                      validateOptionalUrl(value, 'Tautan proyek'),
                 ),
               ),
 
