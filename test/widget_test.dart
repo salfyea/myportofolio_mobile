@@ -104,6 +104,44 @@ void main() {
 }
 
 void formTests() {
+  testWidgets('form Project menolak spasi, nama terlalu panjang, dan URL salah',
+      (tester) async {
+    setScreenSize(tester, const Size(800, 1200));
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+
+    final nama = find.widgetWithText(TextFormField, 'Nama Proyek');
+    final deskripsi = find.widgetWithText(TextFormField, 'Deskripsi Proyek');
+    final tautan = find.widgetWithText(TextFormField, 'Tautan Proyek');
+
+    // Hanya spasi dianggap kosong.
+    await tester.enterText(nama, '   ');
+    await tester.enterText(deskripsi, '   ');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
+
+    // Nama lebih dari 200 karakter dan URL tanpa skema ditolak.
+    await tester.enterText(nama, 'a' * 201);
+    await tester.enterText(deskripsi, 'Toko online');
+    await tester.enterText(tautan, 'github.com/salfyea');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(find.text('Nama proyek terlalu panjang (maksimal 200 karakter).'),
+        findsOneWidget);
+    expect(find.textContaining('Tautan proyek tidak valid'), findsOneWidget);
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+
+    // Data valid diterima.
+    await tester.enterText(nama, 'Burhanpedia');
+    await tester.enterText(tautan, 'https://github.com/salfyea');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+  });
+
   testWidgets('setelah OK, isian lama tidak terbawa ke simpan berikutnya',
       (tester) async {
     setScreenSize(tester, const Size(800, 1200));
