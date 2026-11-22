@@ -143,6 +143,8 @@ Saya menempelkan deskripsi skor 4 untuk fungsionalitas, kualitas kode, dan Git d
 | `feature/experience-form` | Halaman form dan dialog ringkasan (+ test) |
 | `feature/experience-navigation` | Kartu aksi, opsi drawer, penanda halaman aktif, tumpukan halaman (+ test) |
 | `docs/tugas8` | README, jawaban reflektif, dan log ini |
+| `fix/error-text-wrapping` | *(tidak direncanakan)* perbaikan dari temuan QA manual di browser, lihat Prompt 15 |
+| `docs/tugas8-qa-browser` | *(tidak direncanakan)* memperbarui dokumentasi dengan hasil QA browser |
 
 **Masalah yang muncul saat eksekusi dan cara menemukannya:**
 
@@ -157,13 +159,31 @@ Saya menempelkan deskripsi skor 4 untuk fungsionalitas, kualitas kode, dan Git d
 
 **Verifikasi bahwa test tidak lolos kebetulan (mutation check, dua kali):** AI mematikan sementara `_revealFirstError` dan mengembalikan Home ke `pushReplacement`. Test terkait **gagal** sebagaimana mestinya (kolom salah berada di y = -424, dan `canPop()` bernilai `true`), lalu kode dikembalikan dan semua test hijau lagi.
 
-**Verifikasi visual di Chrome: tidak tuntas.** AI membangun versi web (`flutter build web --release`) dan membukanya di Chrome lewat ekstensi. Pemuatan pertama menampilkan halaman utama dengan tujuh kartu, termasuk kartu teal **Tambah Experience**, tetapi semua ikon tampil sebagai kotak karena folder `assets/` pada hasil build web di mesin ini kosong (build melaporkan sukses; penyebabnya tidak diselidiki lebih jauh). Setelah AI menyalin aset dari `build/flutter_assets` sebagai jalan pintas, tangkapan layar gagal tiga kali berturut-turut (*timeout*, dua tab berbeda), sehingga AI berhenti dan tidak melanjutkan. **Alur formulir, dialog, dan drawer belum pernah AI lihat di browser sungguhan**; keyakinan atas perilakunya bersumber dari test otomatis, dan pemeriksaan di Chrome (`flutter run -d chrome`) perlu saya lakukan sendiri.
+**Percobaan pertama verifikasi di Chrome: gagal.** AI membangun versi web (`flutter build web --release`) dan membukanya di Chrome lewat ekstensi. Pemuatan pertama menampilkan halaman utama dengan tujuh kartu, tetapi semua ikon tampil sebagai kotak karena folder `assets/` pada hasil build web di mesin ini kosong (build melaporkan sukses; penyebabnya tidak diselidiki lebih jauh). Setelah AI menyalin aset dari `build/flutter_assets` sebagai jalan pintas, tangkapan layar gagal tiga kali berturut-turut (*timeout*, dua tab berbeda), sehingga AI berhenti dan menanyakan langkah berikutnya, bukan mengklaim tampilannya benar.
 
 **Kelemahan alur yang ditemukan AI pada dirinya sendiri:** saat memecah satu branch menjadi dua commit, `flutter analyze | tail` memakai pipa sehingga kode keluar `analyze` tertutup oleh `tail`; satu temuan analyzer (dari berkas test yang belum di-commit) tidak menghentikan rangkaian perintah. Kode yang di-commit tidak terdampak, tetapi pola itu rapuh dan seharusnya diperiksa dengan kode keluar, bukan dengan `tail`.
 
-### Prompt 15: dokumentasi
+### Prompt 15: QA manual lewat browser sebelum push
 
-README dan log ini disusun AI dari hasil kerja di atas. Jawaban reflektif Tugas 8 ditulis dengan merujuk kode yang benar-benar ada (nama berkas, fungsi, dan test), dan klaim perilaku `pushReplacement` vs `pushAndRemoveUntil` dibuktikan lewat test di atas, bukan hanya teori.
+Ketika AI menanyakan apakah hasilnya boleh di-push, saya menjawab:
+
+> "gunakan fitur browser, lakukan QA dan testing manual dulu, lalu laporkan hasilnya"
+
+**Hasil:** AI tidak push. AI mengganti cara menjalankan aplikasi menjadi `flutter run -d web-server` (aset disajikan dari memori, hanya di 127.0.0.1), lalu menjalankan seluruh daftar uji manual di Chrome: kartu, drawer, validasi (kosong, spasi, URL, urutan tanggal), sakelar *Masih berlangsung*, dialog ringkasan, dan reset setelah **Tutup**. Karena jendela browser tidak dapat dikecilkan, uji lebar ponsel dilakukan dengan menyematkan aplikasi dalam iframe 360 × 640 px. Hasil lengkap (termasuk daftar yang **tidak** diuji) ada di README, bagian *Hasil Uji Manual di Chrome*.
+
+**Temuan:** pada lebar 360 px pesan error "Tanggal selesai wajib dipilih, atau aktifkan "Masih berlangsung"." terpotong elipsis sehingga petunjuk di ujung kalimat tidak terbaca. **63 test otomatis tidak menangkapnya**; hanya melihat layar yang menemukannya.
+
+| Langkah | Hasil |
+| --- | --- |
+| Branch `fix/error-text-wrapping`: `errorMaxLines: 3` pada `AppTextFormField` dan `DateFormField` | Pesan turun ke baris kedua |
+| Mutation check: perbaikan dikembalikan sementara | 2 test regresi baru gagal; dengan perbaikan, 65 test lolos |
+| Verifikasi ulang di browser (server dijalankan ulang, iframe 360 px) | Pesan terbaca utuh dalam dua baris |
+
+**Hal yang tetap tidak teruji:** papan ketik layar sungguhan, deskripsi lebih dari 1000 karakter, tombol Reset, dan perangkat nyata.
+
+### Prompt 16: dokumentasi
+
+README dan log ini disusun AI dari hasil kerja di atas (diperbarui setelah QA browser: jumlah test 63 menjadi 65, dan status verifikasi browser). Jawaban reflektif Tugas 8 ditulis dengan merujuk kode yang benar-benar ada (nama berkas, fungsi, dan test), dan klaim perilaku `pushReplacement` vs `pushAndRemoveUntil` dibuktikan lewat test di atas, bukan hanya teori.
 
 ---
 
