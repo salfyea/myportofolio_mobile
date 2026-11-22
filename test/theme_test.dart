@@ -15,7 +15,7 @@ Color renderedAppBarColor(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('AppBar halaman utama dan form proyek memakai warna tema yang sama',
+  testWidgets('AppBar halaman utama dan semua form memakai warna tema yang sama',
       (tester) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1200);
@@ -30,6 +30,13 @@ void main() {
     await tester.tap(find.text('Tambah Proyek'));
     await tester.pumpAndSettle();
     expect(find.text('Add Project Form'), findsOneWidget);
+    expect(renderedAppBarColor(tester), homeColor);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tambah Experience'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add Experience Form'), findsOneWidget);
     expect(renderedAppBarColor(tester), homeColor);
   });
 }

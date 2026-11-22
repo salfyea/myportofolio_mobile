@@ -52,12 +52,14 @@ void main() {
       expect(find.text('Kamu telah menekan tombol ${item.name}!'),
           findsOneWidget);
 
-      // "Tambah Proyek" membuka halaman form; kembali ke menu dengan Back.
-      if (item.name == 'Tambah Proyek') {
+      // Kartu yang punya halaman tujuan membukanya; kembali ke menu dengan
+      // tombol Back sistem. Kartu lain tetap berada di menu.
+      if (item.destination != null) {
         await tester.pumpAndSettle();
-        expect(find.text('Add Project Form'), findsOneWidget);
-        Navigator.of(tester.element(find.text('Add Project Form'))).pop();
+        expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsNothing);
+        await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
+        expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
       }
     }
   });
