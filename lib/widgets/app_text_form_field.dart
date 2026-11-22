@@ -71,6 +71,10 @@ class AppTextFormField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         alignLabelWithHint: isMultiline,
+        // Pesan kesalahan boleh turun ke baris berikutnya. Tanpa ini, pesan
+        // panjang dipotong "..." pada layar ponsel (ditemukan saat uji manual
+        // di lebar 360 px) sehingga petunjuk di ujung kalimat tidak terbaca.
+        errorMaxLines: 3,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       validator: validator,
