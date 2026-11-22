@@ -43,7 +43,7 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       // Drawer menu untuk navigasi antarhalaman.
-      drawer: const LeftDrawer(),
+      drawer: const LeftDrawer(selected: DrawerDestination.home),
       // Body halaman utama dengan padding di sekelilingnya.
       // SingleChildScrollView agar halaman bisa di-scroll saat konten melebihi layar.
       body: SingleChildScrollView(
