@@ -156,7 +156,7 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     return Scaffold(
       // Warna AppBar mengikuti AppBarTheme di MyApp.
       appBar: AppBar(title: const Text('Add Experience Form')),
-      drawer: const LeftDrawer(),
+      drawer: const LeftDrawer(selected: DrawerDestination.addExperience),
       // SafeArea + SingleChildScrollView: semua kolom dan tombol Simpan tetap
       // terjangkau di layar sempit, dan Scaffold otomatis mengecilkan body saat
       // papan ketik tampil sehingga isi bisa digulir di atasnya.

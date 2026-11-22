@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -18,13 +20,25 @@ class MyHomePage extends StatelessWidget {
 
   /// Daftar menu aksi yang ditampilkan sebagai kisi tombol.
   ///
-  /// Setiap [ItemHomepage] membawa nama, ikon, dan warnanya sendiri, sehingga
-  /// menambah tombol baru cukup dengan menambah satu baris di daftar ini.
+  /// Setiap [ItemHomepage] membawa nama, ikon, warna, dan (bila ada) halaman
+  /// tujuannya sendiri, sehingga menambah tombol baru cukup dengan menambah
+  /// satu baris di daftar ini tanpa menyentuh [ItemCard].
   final List<ItemHomepage> items = [
     ItemHomepage("Lihat Experience", Icons.work, Colors.blue.shade700),
     ItemHomepage("Lihat Proyek", Icons.folder, Colors.deepPurple.shade500),
     ItemHomepage("Lihat Skills", Icons.code, Colors.brown.shade600),
-    ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.green.shade700),
+    ItemHomepage(
+      "Tambah Proyek",
+      Icons.add_circle,
+      Colors.green.shade700,
+      destination: (context) => const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Experience",
+      Icons.work_history,
+      Colors.teal.shade700,
+      destination: (context) => const ExperienceFormPage(),
+    ),
     ItemHomepage("Tambah Skill", Icons.playlist_add, Colors.orange.shade800),
     ItemHomepage("Logout", Icons.logout, Colors.red.shade700),
   ];
@@ -43,7 +57,7 @@ class MyHomePage extends StatelessWidget {
         ),
       ),
       // Drawer menu untuk navigasi antarhalaman.
-      drawer: const LeftDrawer(),
+      drawer: const LeftDrawer(selected: DrawerDestination.home),
       // Body halaman utama dengan padding di sekelilingnya.
       // SingleChildScrollView agar halaman bisa di-scroll saat konten melebihi layar.
       body: SingleChildScrollView(
@@ -160,10 +174,15 @@ class InfoCard extends StatelessWidget {
 
 /// Model data untuk satu tombol menu: [name] sebagai teks, [icon] sebagai
 /// ikon, dan [color] sebagai warna latar kartunya.
+///
+/// [destination] opsional: bila diisi, menekan kartu membuka halaman itu
+/// dengan `Navigator.push()`; bila kosong, kartu hanya menampilkan SnackBar
+/// (fitur tersebut belum dibuat).
 class ItemHomepage {
   final String name;
   final IconData icon;
   final Color color;
+  final WidgetBuilder? destination;
 
-  ItemHomepage(this.name, this.icon, this.color);
+  ItemHomepage(this.name, this.icon, this.color, {this.destination});
 }
