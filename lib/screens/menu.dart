@@ -34,14 +34,13 @@ class MyHomePage extends StatelessWidget {
     // Scaffold menyediakan struktur visual dasar halaman (AppBar, Body, SnackBar).
     return Scaffold(
       // AppBar menampilkan bar bagian atas halaman aplikasi.
+      // Warna AppBar (latar, judul, ikon drawer) berasal dari AppBarTheme di
+      // MyApp, sehingga sama persis dengan halaman formulir.
       appBar: AppBar(
         title: const Text(
           'MyPortfolio',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        // Ikon drawer (hamburger) dibuat putih agar kontras dengan AppBar.
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       // Drawer menu untuk navigasi antarhalaman.
       drawer: const LeftDrawer(),

@@ -8,12 +8,15 @@ class LeftDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Drawer(
       child: ListView(
         children: [
-          // Header drawer: judul dan deskripsi singkat aplikasi.
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.indigo),
+          // Header drawer: judul dan deskripsi singkat aplikasi. Warnanya
+          // diambil dari tema agar sama dengan AppBar di setiap halaman.
+          DrawerHeader(
+            decoration: BoxDecoration(color: colorScheme.primary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -22,13 +25,13 @@ class LeftDrawer extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'Explore personal projects and experiences!',
-                  style: TextStyle(fontSize: 15, color: Colors.white),
+                  style: TextStyle(fontSize: 15, color: colorScheme.onPrimary),
                 ),
               ],
             ),
