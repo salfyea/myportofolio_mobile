@@ -93,7 +93,7 @@ docs/
 | **Tutorial 8** | Setup Flutter dan Dart, inisialisasi proyek `myportofolio_mobile`, pemisahan `menu.dart` dari `main.dart`, perubahan tema warna, perubahan `MyHomePage` menjadi `StatelessWidget`, pembuatan `InfoCard` dan `ItemCard`, serta SnackBar. |
 | **Tugas 7** | Atribut `color` pada `ItemHomepage` agar tiap tombol berwarna unik tanpa percabangan if-else, enam tombol yang mengikuti bagian portofolio Django, halaman yang dapat di-scroll dengan `childAspectRatio` kartu, perbaikan overflow `InfoCard` di layar sempit, docstring, dan widget test baru. |
 | **Tutorial 9** | Drawer menu (`LeftDrawer`), navigasi `push`/`pushReplacement`/`pop`, form tambah proyek (`Form`, `TextFormField`, `DropdownButtonFormField`, validasi), pop-up `AlertDialog` berisi data isian, migrasi impor ke `material_ui`, dan refactoring ke direktori `screens/` dan `widgets/`. |
-| **Tugas 8** | Form **Add Experience** (`Form`, `GlobalKey<FormState>`, `DropdownButtonFormField`, `showDatePicker`, `SwitchListTile`) dengan validator murni di `utils/`, dialog ringkasan, kartu aksi dan opsi drawer baru, pemusatan warna AppBar di `AppBarTheme`, penanda halaman aktif di drawer, perbaikan tumpukan halaman Home, serta 63 test otomatis. |
+| **Tugas 8** | Form **Add Experience** (`Form`, `GlobalKey<FormState>`, `DropdownButtonFormField`, `showDatePicker`, `SwitchListTile`) dengan validator murni di `utils/`, dialog ringkasan, kartu aksi dan opsi drawer baru, pemusatan warna AppBar di `AppBarTheme`, penanda halaman aktif di drawer, perbaikan tumpukan halaman Home, serta 65 test otomatis. |
 | **Tugas berikutnya** | Akan ditambahkan pada bagian ini. |
 
 ---
@@ -132,7 +132,27 @@ Saat aplikasi berjalan, tekan `r` di terminal untuk hot reload dan `R` untuk hot
 7. Buka drawer lalu tekan **Home**. Halaman utama tampil, dan tombol Back sistem tidak lagi menampilkan halaman utama kedua.
 8. Ulangi langkah 2 dan 6 pada lebar jendela ponsel (sekitar 360 px) untuk memastikan tombol **Simpan** tetap terjangkau.
 
-Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (63 test).
+Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (65 test).
+
+### Hasil Uji Manual di Chrome (23 November 2026)
+
+Dijalankan oleh AI lewat ekstensi Chrome terhadap `flutter run -d web-server` (mode debug) pada lebar jendela desktop, lalu lebar ponsel 360 × 640 px (aplikasi disematkan dalam iframe karena jendela browser tidak dapat dikecilkan).
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| Kartu **Tambah Experience** membuka form | Lolos |
+| Drawer: opsi, penanda halaman aktif (di form Experience dan di Home), Home dari form, Add Project dari Home | Lolos |
+| Simpan dengan semua kolom kosong | Lolos: pesan muncul di setiap kolom wajib; halaman menggulir ke kolom pertama |
+| Posisi hanya berisi spasi | Lolos: ditolak |
+| Tautan `linkedin.com/in/saya` | Lolos: ditolak dengan pesan format |
+| Date picker: tanggal setelah hari ini nonaktif (mulai), tanggal sebelum tanggal mulai nonaktif (selesai) | Lolos |
+| Tanggal mulai diubah menjadi setelah tanggal selesai | Lolos: pesan urutan muncul seketika di kolom tanggal selesai |
+| Sakelar **Masih berlangsung** | Lolos: kolom selesai dikosongkan, nonaktif, error hilang |
+| Data valid → dialog → **Tutup** | Lolos: dialog memuat semua isian (periode "23 November 2026 - Sekarang"), formulir kembali kosong |
+| Lebar 360 px: tata letak, tombol Simpan terjangkau, kartu menu 3 kolom | Lolos |
+| Lebar 360 px: pesan error tanggal selesai | **Cacat ditemukan:** pesan dipotong "…". Diperbaiki dengan `errorMaxLines: 3` (`ce30c75`) dan diverifikasi ulang: pesan turun ke baris kedua dan terbaca utuh |
+
+**Belum diuji di browser:** papan ketik layar sungguhan (browser desktop tidak dapat mensimulasikannya; dicakup test `experience_form_test.dart` dengan papan ketik 300 px), deskripsi lebih dari 1000 karakter, tombol Reset, pilihan dropdown yang tercermin di dialog, drawer **Add Experience** dari halaman utama, kedalaman tumpukan halaman setelah Home (dicakup `navigation_test.dart`), dan perangkat Android/iOS nyata. SnackBar "Kamu telah menekan tombol…" dari Tugas 7 tetap muncul di atas formulir selama sekitar empat detik setelah kartu ditekan; perilaku itu disengaja dipertahankan karena Tugas 7 mensyaratkannya.
 
 ---
 
@@ -276,7 +296,7 @@ Saya                                    Claude Code
 | Setup Flutter dan `flutter create` | Tidak | Mengerjakan sendiri |
 | Kode Tutorial 08 (`menu.dart`, `InfoCard`, `ItemCard`, tema) | Menulis kode mengikuti PDF tutorial | Menetapkan aturan, menyediakan data pribadi, menjalankan aplikasi dan memeriksa tampilan di Chrome |
 | Kode Tugas 7 (warna per tombol, 6 tombol, scroll, test) | Menulis kode dan test | Memutuskan lingkup: tombol mengikuti situs Django saya, tanpa fitur star, dan meminta rencana dijelaskan dulu |
-| Kode Tugas 8 (form Experience, `AppTextFormField`, `DateFormField`, drawer, kartu aksi, tema, 40 test baru) | Merancang struktur, memilih field formulir Experience, menulis kode dan test, menjalankan `analyze` dan `test` per branch | Menyediakan soal dan rubrik, menetapkan target skor 4 di setiap kriteria, dan aturan tanpa atribusi AI di commit (dari sesi sebelumnya) |
+| Kode Tugas 8 (form Experience, `AppTextFormField`, `DateFormField`, drawer, kartu aksi, tema, 42 test baru) | Merancang struktur, memilih field formulir Experience, menulis kode dan test, menjalankan `analyze` dan `test` per branch | Menyediakan soal dan rubrik, menetapkan target skor 4 di setiap kriteria, dan aturan tanpa atribusi AI di commit (dari sesi sebelumnya) |
 | Git (branch, merge `--no-ff`, push) | Menjalankan perintah | Menetapkan alur kerja dan larangan trailer `Co-Authored-By` |
 | README dan jawaban reflektif | Menyusun draf | Meminta dijelaskan dan menjadikannya bahan belajar |
 | PDF ringkasan belajar | Menyusun | Dipakai untuk persiapan quiz dan UTS (tidak termasuk repositori) |
@@ -369,15 +389,15 @@ Test pertama untuk "tanggal selesai sebelum tanggal mulai" mengasumsikan penggun
 
 ### 12. Test yang hijau belum tentu bermakna (Tugas 8)
 
-Untuk dua fitur yang tidak terlihat dari luar (gulir otomatis ke kolom yang salah, dan Home yang tidak menumpuk halaman), AI mematikan fiturnya sementara untuk memastikan testnya **gagal**. Keduanya gagal sebagaimana mestinya (kolom berada di y = -424; `canPop()` bernilai `true`), baru kemudian kode dikembalikan. Tanpa langkah ini, test yang lolos tidak membuktikan apa-apa.
+Untuk dua fitur yang tidak terlihat dari luar (gulir otomatis ke kolom yang salah, dan Home yang tidak menumpuk halaman), AI mematikan fiturnya sementara untuk memastikan testnya **gagal**. Keduanya gagal sebagaimana mestinya (kolom berada di y = -424; `canPop()` bernilai `true`), baru kemudian kode dikembalikan. Langkah yang sama dipakai pada perbaikan pesan error multibaris: perbaikannya dikembalikan sementara dan dua test baru gagal. Tanpa langkah ini, test yang lolos tidak membuktikan apa-apa.
 
 ### 13. Alur perintah AI dapat menyembunyikan kegagalan (Tugas 8)
 
 AI memeriksa hasil analisis dengan `flutter analyze | tail`, dan pipa itu menutupi kode keluar `analyze`. Satu temuan analyzer pada berkas test yang belum di-commit tidak menghentikan rangkaian perintah. Kode yang di-commit tidak terdampak, tetapi pola itu rapuh.
 
-### 14. Verifikasi di browser oleh AI tidak tuntas (Tugas 8)
+### 14. Verifikasi di browser: percobaan pertama gagal, tuntas dengan cara lain (Tugas 8)
 
-AI membangun versi web dan membukanya di Chrome, tetapi hasil build di mesin ini kehilangan folder `assets/` (ikon tampil sebagai kotak) dan tangkapan layar gagal tiga kali (*timeout*). AI berhenti dan tidak mengklaim tampilannya sudah benar. Perilaku formulir diverifikasi lewat test otomatis, sedangkan tampilan sebenarnya perlu diperiksa dengan `flutter run -d chrome` memakai [daftar uji manual](#menguji-form-experience-secara-manual).
+Percobaan pertama AI memakai `flutter build web --release`, tetapi hasil build di mesin ini kehilangan folder `assets/` (ikon tampil sebagai kotak) dan tangkapan layar gagal tiga kali (*timeout*). AI berhenti dan tidak mengklaim tampilannya benar. Setelah saya meminta QA manual lewat browser, AI beralih ke `flutter run -d web-server` yang menyajikan aset dari memori, dan pengujian berjalan (hasil lengkap ada di [Hasil Uji Manual](#hasil-uji-manual-di-chrome-23-november-2026)). Uji ini menemukan cacat yang **tidak tertangkap 63 test otomatis**: pesan error terpotong pada lebar ponsel. Batasannya tetap ada: AI hanya menguji mode debug di Chrome desktop dan iframe 360 px, bukan perangkat nyata atau papan ketik layar sungguhan.
 
 ### 15. Skor rubrik tidak bisa dijamin AI
 
@@ -406,7 +426,8 @@ Kriteria skor 4 memuat penilaian subjektif ("optimasi kode tingkat lanjut", "dok
 | **Tugas 8:** salah impor `MaxLengthEnforcement`, `FakeViewPadding`, `EmploymentType` | Menulis impor tanpa memeriksa paket `material_ui` | `flutter analyze` menangkap ketiganya sebelum commit |
 | **Tugas 8:** test tanggal mustahil dan test teks ganda | Menulis skenario yang bertentangan dengan fiturnya sendiri | `flutter test` menggagalkannya; skenario diganti dan pencarian dibatasi ke dialog (lihat [log](docs/ai-log.md)) |
 | **Tugas 8:** test lolos belum tentu bermakna | Menulis test untuk fitur tak kasatmata | Mutation check dua kali (gulir ke kolom salah, Home) |
-| **Tugas 8:** `flutter build web` di mesin ini menghasilkan `assets/` kosong | Mencoba memverifikasi di Chrome | Tidak tuntas; diverifikasi lewat test, dan perlu diperiksa dengan `flutter run -d chrome` |
+| **Tugas 8:** `flutter build web` di mesin ini menghasilkan `assets/` kosong | Mencoba memverifikasi di Chrome | Percobaan pertama gagal; diganti `flutter run -d web-server` sehingga QA manual di Chrome berjalan |
+| **Tugas 8:** pesan error tanggal selesai terpotong "…" di lebar 360 px | Menulis `InputDecoration` tanpa `errorMaxLines`; 63 test lolos tanpa menyadarinya | Ditemukan lewat QA manual di Chrome; diperbaiki dengan `errorMaxLines: 3`, ditambah 2 test regresi yang terbukti gagal tanpa perbaikan, lalu diverifikasi ulang di browser (`ce30c75`) |
 
 ---
 
@@ -439,4 +460,4 @@ Bisa menjelaskan ulang sendiri
 
 Karena porsi AI pada pekan ini besar, ukuran keberhasilan saya bukan seberapa cepat tugas selesai, melainkan apakah saya bisa menggambar widget tree, menjelaskan `StatelessWidget` vs `StatefulWidget`, dan menulis ulang `InfoCard`, `ItemHomepage`, dan `ItemCard` dari ingatan. Untuk itu saya memakai PDF ringkasan dan latihan soal (disusun dengan bantuan AI) sebagai bahan belajar.
 
-**Tambahan dari Tugas 8.** Pelajaran yang paling berguna adalah membedakan *test yang lolos* dari *test yang membuktikan sesuatu*. Dari 63 test, dua di antaranya (gulir ke kolom salah dan tumpukan halaman Home) baru bisa dipercaya setelah fiturnya dimatikan sementara dan testnya terbukti gagal. Satu temuan perancangan lain berasal dari mempertanyakan pola tutorial itu sendiri: `pushReplacement` untuk Home tampak benar, tetapi menyisakan halaman utama ganda. Batasannya juga jelas: AI belum melihat aplikasi di browser sungguhan dan belum membaca model Django yang menjadi sumber field formulir, sehingga dua hal itu harus saya periksa sendiri sebelum mengumpulkan. Ukuran keberhasilan saya tetap kemampuan menjelaskan ulang kode: terutama `GlobalKey<FormState>` dengan `validate()`, perbedaan `push`, `pushReplacement`, dan `pushAndRemoveUntil`, serta alasan `DateFormField` dibuat sebagai `FormField`.
+**Tambahan dari Tugas 8.** Pelajaran yang paling berguna adalah membedakan *test yang lolos* dari *test yang membuktikan sesuatu*. Dari 65 test, tiga kelompok (gulir ke kolom salah, tumpukan halaman Home, dan pesan error multibaris) baru bisa dipercaya setelah fiturnya dimatikan sementara dan testnya terbukti gagal. Satu temuan perancangan lain berasal dari mempertanyakan pola tutorial itu sendiri: `pushReplacement` untuk Home tampak benar, tetapi menyisakan halaman utama ganda. Temuan terpenting lainnya datang dari luar test: QA manual di browser menemukan pesan error yang terpotong di lebar ponsel, padahal 63 test sebelumnya hijau. Batasannya juga jelas: uji browser hanya dilakukan di mode debug (Chrome desktop dan iframe 360 px, tanpa papan ketik layar atau perangkat nyata), dan AI belum membaca model Django yang menjadi sumber field formulir, sehingga kesesuaian field itu harus saya periksa sendiri sebelum mengumpulkan. Ukuran keberhasilan saya tetap kemampuan menjelaskan ulang kode: terutama `GlobalKey<FormState>` dengan `validate()`, perbedaan `push`, `pushReplacement`, dan `pushAndRemoveUntil`, serta alasan `DateFormField` dibuat sebagai `FormField`.
