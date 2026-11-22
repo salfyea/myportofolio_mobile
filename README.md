@@ -19,7 +19,18 @@ Aplikasi mobile portofolio pribadi yang dibangun dengan **Flutter**. Aplikasi in
 
 ## Tentang Proyek
 
-Halaman utama aplikasi menampilkan identitas pemilik portofolio pada tiga kartu informasi (NPM, Nama, Kelas) dan enam tombol menu yang mengikuti bagian-bagian website Django: **Experience**, **Projects**, dan **Skills**, ditambah aksi tambah dan logout. Setiap tombol memiliki ikon dan warna sendiri. Saat ditekan, tombol memunculkan SnackBar `Kamu telah menekan tombol [Nama Tombol]!`.
+Halaman utama aplikasi menampilkan identitas pemilik portofolio pada tiga kartu informasi (NPM, Nama, Kelas) dan tujuh tombol menu yang mengikuti bagian-bagian website Django: **Experience**, **Projects**, dan **Skills**, ditambah aksi tambah dan logout. Setiap tombol memiliki ikon dan warna sendiri. Saat ditekan, tombol memunculkan SnackBar `Kamu telah menekan tombol [Nama Tombol]!`.
+
+Sejak Tugas 8, aplikasi punya dua halaman formulir yang bisa dibuka dari kartu aksi di halaman utama maupun dari drawer:
+
+| Formulir | Isian | Aturan validasi |
+| --- | --- | --- |
+| **Add Project** (Tutorial 9) | Nama, deskripsi, kategori, teknologi, tautan | Nama dan deskripsi wajib (spasi saja ditolak), nama maks. 200 karakter, tautan opsional berformat `http(s)://` |
+| **Add Experience** (Tugas 8) | Posisi, perusahaan, jenis pekerjaan, tanggal mulai, tanggal selesai atau "Masih berlangsung", deskripsi, tautan | Posisi, perusahaan, tanggal mulai, dan deskripsi wajib; tanggal mulai tidak boleh di masa depan; tanggal selesai tidak boleh sebelum tanggal mulai; batas panjang 100/100/1000/200 karakter; tautan opsional berformat `http(s)://` |
+
+Setelah semua isian lolos validasi, tombol **Simpan** menampilkan ringkasan dalam `AlertDialog`. Data belum disimpan ke database; penyimpanan ke backend Django adalah pekerjaan pekan berikutnya.
+
+**Fitur tambahan pada form Experience** (di luar yang diminta soal): date picker dengan validasi silang tanggal, sakelar *Masih berlangsung*, penghitung karakter deskripsi, gulir otomatis ke kolom pertama yang salah, tombol Reset, durasi pengalaman pada ringkasan, penanda halaman aktif pada drawer, dan Home di drawer yang tidak menumpuk halaman.
 
 ### Teknologi
 
@@ -33,26 +44,45 @@ Halaman utama aplikasi menampilkan identitas pemilik portofolio pada tiga kartu 
 
 ```text
 lib/
-├── main.dart                  # Titik masuk: main(), MyApp (MaterialApp + tema)
-├── screens/
-│   ├── menu.dart              # MyHomePage, InfoCard, ItemHomepage
-│   └── project_form.dart      # ProjectFormPage (form tambah proyek)
-└── widgets/
-    ├── left_drawer.dart       # LeftDrawer (navigasi Home / Add Project)
-    └── project_card.dart      # ItemCard
+├── main.dart                        # Titik masuk: main(), MyApp (MaterialApp + tema + AppBarTheme)
+├── models/
+│   └── experience.dart              # Experience, EmploymentType (data murni, tanpa UI)
+├── screens/                         # Satu berkas = satu halaman penuh
+│   ├── menu.dart                    # MyHomePage, InfoCard, ItemHomepage
+│   ├── project_form.dart            # ProjectFormPage (form tambah proyek)
+│   └── experience_form.dart         # ExperienceFormPage (form tambah experience)
+├── utils/                           # Logika murni, tanpa widget (mudah diuji)
+│   ├── validators.dart              # validateRequired, validateOptionalUrl, validateEndDate, ...
+│   └── formatters.dart              # formatDate, formatDuration
+└── widgets/                         # Komponen yang dipakai ulang antarhalaman
+    ├── left_drawer.dart             # LeftDrawer + DrawerDestination (navigasi + penanda halaman aktif)
+    ├── project_card.dart            # ItemCard (kartu aksi di halaman utama)
+    ├── app_text_form_field.dart     # AppTextFormField (kolom teks seragam)
+    ├── date_form_field.dart         # DateFormField (FormField<DateTime> + showDatePicker)
+    └── experience_summary_dialog.dart  # ExperienceSummaryDialog (ringkasan setelah Simpan)
 test/
-└── widget_test.dart   # Smoke test halaman menu
+├── widget_test.dart                 # Halaman menu, form proyek, drawer
+├── experience_form_test.dart        # Form Experience: validasi, dialog, reset, layar ponsel + keyboard
+├── navigation_test.dart             # Kartu, drawer, Back sistem, tumpukan halaman
+├── form_widgets_test.dart           # AppTextFormField dan DateFormField
+├── validators_test.dart             # Unit test validator
+├── formatters_test.dart             # Unit test formatter dan model
+└── theme_test.dart                  # Warna AppBar konsisten antarhalaman
 docs/
-└── ai-log.md          # Log prompting AI (Tutorial 08 dan Tugas 7)
+└── ai-log.md                        # Log prompting AI (Tutorial 08, Tugas 7, Tugas 8)
 ```
 
 | Komponen | Peran |
 | --- | --- |
-| `MyApp` | Widget akar; menyediakan `MaterialApp` dan tema warna |
+| `MyApp` | Widget akar; menyediakan `MaterialApp`, tema warna, dan `AppBarTheme` yang dipakai semua halaman |
 | `MyHomePage` | Halaman menu utama (`StatelessWidget`) |
 | `InfoCard` | Kartu informasi yang dapat dipakai ulang (judul + isi) |
-| `ItemHomepage` | Model data satu tombol: nama, ikon, warna |
-| `ItemCard` | Kartu tombol berwarna dengan efek sentuh dan SnackBar |
+| `ItemHomepage` | Model data satu tombol: nama, ikon, warna, dan halaman tujuan (opsional) |
+| `ItemCard` | Kartu tombol berwarna dengan efek sentuh, SnackBar, dan `Navigator.push()` ke tujuannya |
+| `LeftDrawer` | Drawer yang sama di semua halaman; daftar pilihannya berbasis data dan halaman aktif ditandai |
+| `ExperienceFormPage` | Form `StatefulWidget` dengan `GlobalKey<FormState>`, validasi, dan dialog ringkasan |
+| `AppTextFormField` / `DateFormField` | Kolom input reusable; `DateFormField` ikut `validate()` dan `reset()` karena berupa `FormField` |
+| `validators.dart` / `formatters.dart` | Aturan validasi dan format tampilan dalam fungsi murni, terpisah dari widget |
 
 ---
 
@@ -63,6 +93,7 @@ docs/
 | **Tutorial 8** | Setup Flutter dan Dart, inisialisasi proyek `myportofolio_mobile`, pemisahan `menu.dart` dari `main.dart`, perubahan tema warna, perubahan `MyHomePage` menjadi `StatelessWidget`, pembuatan `InfoCard` dan `ItemCard`, serta SnackBar. |
 | **Tugas 7** | Atribut `color` pada `ItemHomepage` agar tiap tombol berwarna unik tanpa percabangan if-else, enam tombol yang mengikuti bagian portofolio Django, halaman yang dapat di-scroll dengan `childAspectRatio` kartu, perbaikan overflow `InfoCard` di layar sempit, docstring, dan widget test baru. |
 | **Tutorial 9** | Drawer menu (`LeftDrawer`), navigasi `push`/`pushReplacement`/`pop`, form tambah proyek (`Form`, `TextFormField`, `DropdownButtonFormField`, validasi), pop-up `AlertDialog` berisi data isian, migrasi impor ke `material_ui`, dan refactoring ke direktori `screens/` dan `widgets/`. |
+| **Tugas 8** | Form **Add Experience** (`Form`, `GlobalKey<FormState>`, `DropdownButtonFormField`, `showDatePicker`, `SwitchListTile`) dengan validator murni di `utils/`, dialog ringkasan, kartu aksi dan opsi drawer baru, pemusatan warna AppBar di `AppBarTheme`, penanda halaman aktif di drawer, perbaikan tumpukan halaman Home, serta 63 test otomatis. |
 | **Tugas berikutnya** | Akan ditambahkan pada bagian ini. |
 
 ---
@@ -89,6 +120,19 @@ flutter test
 ```
 
 Saat aplikasi berjalan, tekan `r` di terminal untuk hot reload dan `R` untuk hot restart.
+
+### Menguji Form Experience Secara Manual
+
+1. Dari halaman utama, buka formulir lewat kartu **Tambah Experience**, lalu ulangi lewat drawer (**Add Experience**). Kedua jalur harus membuka halaman yang sama.
+2. Tekan **Simpan** dengan semua kolom kosong. Pesan kesalahan harus muncul di tiap kolom wajib dan dialog tidak boleh muncul.
+3. Isi **Posisi** hanya dengan spasi, atau isi **Tautan** dengan `linkedin.com/in/saya` (tanpa `https://`). Keduanya harus ditolak.
+4. Pilih tanggal selesai lebih dulu, lalu pilih tanggal mulai yang lebih akhir. Pesan "Tanggal selesai tidak boleh sebelum tanggal mulai" harus muncul pada kolom tanggal selesai.
+5. Aktifkan **Masih berlangsung**. Kolom tanggal selesai harus nonaktif dan tidak lagi wajib.
+6. Lengkapi isian lalu tekan **Simpan**. Dialog harus menampilkan data yang baru dimasukkan. Tekan **Tutup**; formulir kembali kosong.
+7. Buka drawer lalu tekan **Home**. Halaman utama tampil, dan tombol Back sistem tidak lagi menampilkan halaman utama kedua.
+8. Ulangi langkah 2 dan 6 pada lebar jendela ponsel (sekitar 360 px) untuk memastikan tombol **Simpan** tetap terjangkau.
+
+Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (63 test).
 
 ---
 
@@ -166,11 +210,44 @@ Saat aplikasi berjalan, tekan `r` di terminal untuk hot reload dan `R` untuk hot
    **Hot reload** menyuntikkan kode Dart yang baru ke mesin virtual yang sedang berjalan lalu membangun ulang widget tree. **State aplikasi dipertahankan**, jadi perubahan tampilan terlihat dalam hitungan detik tanpa kembali ke awal. **Hot restart** menjalankan ulang aplikasi dari `main()`, sehingga **state direset** ke kondisi awal, tetapi tetap lebih cepat daripada membangun ulang seluruh aplikasi. **Full restart** (hentikan lalu `flutter run` lagi) mengompilasi ulang aplikasi native secara penuh.
    Hot reload **tidak cukup** jika: mengubah `main()` atau isi variabel global/`static` (inisialisasi awalnya tidak dijalankan ulang), mengubah logika `initState` (hanya berjalan sekali saat `State` dibuat), mengubah tipe seperti mengganti `StatelessWidget` menjadi `StatefulWidget` atau mengubah `enum`/generik, atau state yang tersimpan terlanjur salah dan perlu direset (butuh **hot restart**). Perlu **full restart** jika menambah atau mengubah dependensi di `pubspec.yaml` (dengan `flutter pub get`), aset, atau kode native seperti `AndroidManifest.xml` dan konfigurasi Gradle/Xcode, serta mengubah plugin native.
 
+### Tugas 8
+
+1. **`Navigator.push()`, `pushReplacement()`, dan `pop()`.**
+   Navigator mengelola **tumpukan halaman (route)**; halaman paling atas yang terlihat.
+   - `push()` menaruh halaman baru **di atas** tumpukan. Halaman lama tetap hidup di bawahnya, sehingga pengguna bisa kembali ke sana.
+   - `pushReplacement()` **mengganti** halaman teratas dengan halaman baru. Halaman lama dibuang, jadi tidak ada yang bisa dikembalikan lewat tombol Back.
+   - `pop()` **membuang** halaman teratas dan menampilkan halaman di bawahnya.
+
+   **Untuk membuka formulir dari kartu aksi dipakai `Navigator.push()`** (di `ItemCard`, `lib/widgets/project_card.dart`). Tumpukannya menjadi `[Home, Form]`, sehingga tombol Back bawaan perangkat langsung kembali ke halaman utama.
+
+   **Opsi Home di drawer** (`LeftDrawer._open`, `lib/widgets/left_drawer.dart`) memakai `Navigator.pushAndRemoveUntil(context, route, (route) => false)`. Fungsi itu mendorong `MyHomePage` baru lalu **membuang seluruh halaman di bawahnya** (predikat `false` berarti tidak ada yang dipertahankan), sehingga tumpukan menjadi `[Home]`. Awalnya (pola Tutorial 9) Home memakai `pushReplacement()`, tetapi cara itu hanya mengganti halaman teratas: jika form dibuka dari kartu, tumpukan `[Home, Form]` berubah menjadi `[Home, Home]` dan pengguna menemukan halaman utama kedua saat menekan Back. Test `navigation_test.dart` membuktikannya: dengan `pushReplacement`, `Navigator.canPop()` bernilai `true`; dengan `pushAndRemoveUntil`, `false`. Opsi **Add Project** dan **Add Experience** tetap memakai `pushReplacement()` karena berpindah antarformulir tidak perlu menumpuk halaman, dan memilih halaman yang sedang aktif hanya memanggil `pop()` untuk menutup drawer (supaya isian form tidak terhapus oleh pembangunan ulang halaman).
+
+2. **Susunan `Scaffold`, `AppBar`, dan `Drawer`.**
+   `Scaffold` adalah kerangka tetap setiap halaman: slot `appBar` untuk judul, `drawer` untuk navigasi, dan `body` untuk isi, serta tempat SnackBar ditampilkan. Karena setiap halaman (`MyHomePage`, `ProjectFormPage`, `ExperienceFormPage`) memakai susunan slot yang sama, pengguna selalu menemukan judul di tempat yang sama dan ikon hamburger yang sama. `LeftDrawer` ditulis **satu kali** dan dipakai ulang di ketiga halaman; yang berbeda hanya parameter `selected` untuk menandai halaman aktif. Menambah halaman baru cukup menambah satu entri di daftar `_entries`.
+
+   **Contoh warna tema di lebih dari satu halaman:** warna utama portofolio berasal dari `ColorScheme.fromSeed(seedColor: Colors.indigo)` di `MyApp`, dan `colorScheme.primary` dipakai di **AppBar halaman utama, AppBar form Project, AppBar form Experience** (ditetapkan sekali di `AppBarTheme`), **header drawer**, tombol **Simpan**, penanda menu drawer yang aktif, dan ikon dialog ringkasan. Awalnya form dan drawer memakai `Colors.indigo` yang tertulis langsung, sehingga sedikit berbeda dengan warna halaman utama; sekarang `theme_test.dart` memeriksa bahwa warna AppBar yang dirender identik di ketiga halaman.
+
+3. **Alasan tata letak formulir dan peran widget jarak serta penggulir.**
+   Formulir disusun sebagai `Column` di dalam `SingleChildScrollView`, di dalam `SafeArea`, dengan lebar dibatasi `ConstrainedBox(maxWidth: 600)`. Satu kolom vertikal cocok untuk formulir: pengguna mengisi dari atas ke bawah, tiap kolom memakai lebar penuh sehingga mudah disentuh, dan urutan fokus papan ketik mengikuti urutan visual.
+   - **Widget pengatur jarak** (`Padding` 16 px di sekeliling, `spacing: 16` pada `Column`, `spacing: 12` pada baris tombol) menjaga kolom tidak saling menempel, sehingga target sentuh tidak berhimpitan dan pesan kesalahan di bawah kolom punya ruang. `Expanded` membagi lebar baris tombol, dan `isExpanded: true` mencegah dropdown meluap pada layar sempit.
+   - **Widget penggulir** (`SingleChildScrollView`) dipilih karena formulir ini lebih tinggi daripada layar ponsel, apalagi saat papan ketik menutupi sebagian layar. `Scaffold` mengecilkan area `body` sebesar tinggi papan ketik, dan `SingleChildScrollView` membuat sisanya bisa digulir, sehingga tidak ada overflow dan tombol **Simpan** tetap terjangkau. `keyboardDismissBehavior: onDrag` menutup papan ketik saat digulir. Pada layar lebar (Chrome), `maxWidth: 600` mencegah kolom melebar berlebihan.
+
+   Hal ini diuji pada layar 360×640 dengan papan ketik 300 px tampil: Simpan dapat dijangkau, dan setelah ditekan halaman menggulir otomatis ke kolom pertama yang salah (`Scrollable.ensureVisible`) agar kesalahan di atas layar tidak terlewat.
+
+4. **Peran `GlobalKey<FormState>`, `validator`, dan `validate()`.**
+   - **`GlobalKey<FormState>`** adalah "pegangan" yang menghubungkan tombol Simpan (di luar kolom) dengan `FormState` milik widget `Form`. Tanpa kunci itu tombol tidak bisa memerintahkan seluruh kolom.
+   - **`validator`** adalah fungsi pada tiap kolom yang menerima nilainya dan mengembalikan **pesan kesalahan** (`String`) bila ditolak atau `null` bila valid. Aturannya ada di `lib/utils/validators.dart`, bukan di dalam widget, sehingga bisa diuji tanpa UI.
+   - **`validate()`** menjalankan semua `validator` sekaligus, menampilkan pesan di `errorText` kolom yang salah, dan mengembalikan `true` hanya jika semuanya `null`. Pada `_submit()`, dialog baru dibuka setelah `validate()` bernilai `true`. `DateFormField` dibuat sebagai `FormField<DateTime>` supaya ikut `validate()` dan `reset()`; jika hanya berupa tombol biasa, tanggal kosong tidak akan terdeteksi.
+
+   **Contoh nilai yang ditolak:** Posisi berisi `"     "` (hanya spasi) ditolak dengan pesan *"Posisi tidak boleh kosong!"*, karena `validateRequired` memangkas spasi sebelum memeriksa. Contoh lain: tautan `linkedin.com/in/saya` (tanpa `https://`) dan deskripsi 1001 karakter.
+
+   **Mengapa memilih jenis input atau papan ketik saja belum cukup:** `keyboardType: TextInputType.url` hanya mengubah **tampilan** papan ketik; pengguna tetap bisa mengetik `abc`, menempel teks apa pun, atau memakai papan ketik perangkat keras. Papan ketik juga tidak mengenal aturan model seperti batas 100 karakter atau "tanggal selesai tidak boleh sebelum tanggal mulai". Dropdown dan date picker memang mencegah nilai di luar pilihan, tetapi hubungan antarkolom (urutan tanggal) tetap perlu `validator`. Validasi adalah penjaga terakhir yang memastikan data yang lolos benar-benar sesuai aturan, apa pun cara masuknya.
+
 ---
 
 ## AI Disclosure
 
-Pada Tutorial 08 dan Tugas 7 saya menggunakan AI sebagai **asisten implementasi**. Perlu saya nyatakan terus terang: **sebagian besar penulisan kode, dokumentasi, dan draf jawaban reflektif dikerjakan oleh AI** berdasarkan instruksi, aturan, dan keputusan saya. Karena porsinya besar, bagian ini sengaja saya tulis rinci, termasuk kesalahan AI yang saya temukan selama prosesnya.
+Pada Tutorial 08, Tugas 7, dan Tugas 8 saya menggunakan AI sebagai **asisten implementasi**. Perlu saya nyatakan terus terang: **sebagian besar penulisan kode, dokumentasi, dan draf jawaban reflektif dikerjakan oleh AI** berdasarkan instruksi, aturan, dan keputusan saya. Karena porsinya besar, bagian ini sengaja saya tulis rinci, termasuk kesalahan AI yang saya temukan selama prosesnya.
 
 ### Tools yang Digunakan
 
@@ -199,6 +276,7 @@ Saya                                    Claude Code
 | Setup Flutter dan `flutter create` | Tidak | Mengerjakan sendiri |
 | Kode Tutorial 08 (`menu.dart`, `InfoCard`, `ItemCard`, tema) | Menulis kode mengikuti PDF tutorial | Menetapkan aturan, menyediakan data pribadi, menjalankan aplikasi dan memeriksa tampilan di Chrome |
 | Kode Tugas 7 (warna per tombol, 6 tombol, scroll, test) | Menulis kode dan test | Memutuskan lingkup: tombol mengikuti situs Django saya, tanpa fitur star, dan meminta rencana dijelaskan dulu |
+| Kode Tugas 8 (form Experience, `AppTextFormField`, `DateFormField`, drawer, kartu aksi, tema, 40 test baru) | Merancang struktur, memilih field formulir Experience, menulis kode dan test, menjalankan `analyze` dan `test` per branch | Menyediakan soal dan rubrik, menetapkan target skor 4 di setiap kriteria, dan aturan tanpa atribusi AI di commit (dari sesi sebelumnya) |
 | Git (branch, merge `--no-ff`, push) | Menjalankan perintah | Menetapkan alur kerja dan larangan trailer `Co-Authored-By` |
 | README dan jawaban reflektif | Menyusun draf | Meminta dijelaskan dan menjadikannya bahan belajar |
 | PDF ringkasan belajar | Menyusun | Dipakai untuk persiapan quiz dan UTS (tidak termasuk repositori) |
@@ -271,11 +349,39 @@ Saat skrip edit gagal pada branch integrasi UI, perintah berikutnya tetap berjal
 
 ### 7. Pengaturan bawaan alat dapat bertentangan dengan keinginan saya
 
-Claude Code secara bawaan mengarahkan penambahan trailer `Co-Authored-By` pada commit. Saya melarangnya dan memeriksa bahwa 28 commit di repositori ini memuat 0 trailer tersebut. Karena riwayat commit sengaja dibiarkan bersih, **pengungkapan penggunaan AI saya letakkan di README ini**.
+Claude Code secara bawaan mengarahkan penambahan trailer `Co-Authored-By` pada commit. Saya melarangnya, dan pada Tugas 8 AI tetap mengikuti larangan itu walau konfigurasi alat menyuruh sebaliknya. Seluruh commit di repositori ini memuat 0 trailer tersebut (`git log --format=%B | grep -ci "co-authored-by"` bernilai 0). Karena riwayat commit sengaja dibiarkan bersih, **pengungkapan penggunaan AI saya letakkan di README ini**.
 
 ### 8. AI tidak menggantikan pemahaman saya
 
 Yang akan diuji pada quiz dan UTS adalah pemahaman saya, bukan AI. Karena itu jawaban reflektif dan PDF belajar hanya berguna jika saya benar-benar memahami dan mampu menjelaskan ulang isinya sendiri.
+
+### 9. Perintah yang terpotong ditafsirkan, bukan ditanyakan (Tugas 8)
+
+Perintah saya berakhir di "coba cek dan" (terpotong). AI menafsirkannya sebagai "periksa repositori lalu kerjakan" dan langsung mengimplementasikan seluruh tugas. Tafsirannya kebetulan sesuai, tetapi AI seharusnya menanyakan kelanjutan kalimat itu sebelum menulis banyak kode. AI juga memilih sendiri formulir **Experience** tanpa bertanya.
+
+### 10. Rancangan model dibuat tanpa melihat sumbernya (Tugas 8)
+
+Field formulir Experience (posisi, perusahaan, jenis, tanggal mulai/selesai, deskripsi, tautan) adalah rancangan AI. AI **tidak membuka model Experience di proyek Django saya**, sehingga kesesuaian dengan model sebenarnya belum terjamin dan perlu saya cocokkan sendiri.
+
+### 11. AI menulis test yang mustahil karena fiturnya sendiri (Tugas 8)
+
+Test pertama untuk "tanggal selesai sebelum tanggal mulai" mengasumsikan pengguna bisa membuka bulan sebelumnya pada date picker tanggal selesai. Padahal AI sendiri membatasi `firstDate` picker itu dengan tanggal mulai. Test gagal dan menunjukkan bahwa UI memang mencegah urutan terbalik, sehingga skenarionya diganti (pilih tanggal selesai lebih dulu). Pelajarannya: test dari AI bisa salah memahami kodenya sendiri.
+
+### 12. Test yang hijau belum tentu bermakna (Tugas 8)
+
+Untuk dua fitur yang tidak terlihat dari luar (gulir otomatis ke kolom yang salah, dan Home yang tidak menumpuk halaman), AI mematikan fiturnya sementara untuk memastikan testnya **gagal**. Keduanya gagal sebagaimana mestinya (kolom berada di y = -424; `canPop()` bernilai `true`), baru kemudian kode dikembalikan. Tanpa langkah ini, test yang lolos tidak membuktikan apa-apa.
+
+### 13. Alur perintah AI dapat menyembunyikan kegagalan (Tugas 8)
+
+AI memeriksa hasil analisis dengan `flutter analyze | tail`, dan pipa itu menutupi kode keluar `analyze`. Satu temuan analyzer pada berkas test yang belum di-commit tidak menghentikan rangkaian perintah. Kode yang di-commit tidak terdampak, tetapi pola itu rapuh.
+
+### 14. Verifikasi di browser oleh AI tidak tuntas (Tugas 8)
+
+AI membangun versi web dan membukanya di Chrome, tetapi hasil build di mesin ini kehilangan folder `assets/` (ikon tampil sebagai kotak) dan tangkapan layar gagal tiga kali (*timeout*). AI berhenti dan tidak mengklaim tampilannya sudah benar. Perilaku formulir diverifikasi lewat test otomatis, sedangkan tampilan sebenarnya perlu diperiksa dengan `flutter run -d chrome` memakai [daftar uji manual](#menguji-form-experience-secara-manual).
+
+### 15. Skor rubrik tidak bisa dijamin AI
+
+Kriteria skor 4 memuat penilaian subjektif ("optimasi kode tingkat lanjut", "dokumentasi berkualitas open-source"). AI hanya dapat memenuhi indikator yang terukur (struktur modular, docstring, branch per fitur, conventional commits, analisis kritis), dan tidak dapat menjanjikan skor akhir.
 
 ---
 
@@ -292,8 +398,15 @@ Yang akan diuji pada quiz dan UTS adalah pemahaman saya, bukan AI. Karena itu ja
 | Klaim yang tidak terverifikasi pada draf dokumentasi | Menulis klaim hot reload web dan tipe `Colors.amber[700]` | Dihapus atau diganti sebelum final; log run menampilkan `r Hot reload` |
 | Opsi "Ekstra" belum saya pahami | Mengusulkan 6 tombol, rasio kartu, dan test baru | Saya menanyakan maksudnya; dijelaskan dulu, baru dikerjakan |
 | Tugas yang dimaksud tidak jelas | Menebak bahwa itu Individual Assignment 7 | Saya mengirim soal resminya; AI menandai bahwa sebelumnya hanya menebak |
-| Trailer `Co-Authored-By` pada commit | Bawaan Claude Code mengarahkan penambahannya | Saya melarangnya, lalu memeriksa 28 commit di lokal dan `origin/main`: 0 trailer, seluruh penulis `salfyea` |
+| Trailer `Co-Authored-By` pada commit | Bawaan Claude Code mengarahkan penambahannya | Saya melarangnya; pada Tugas 8 AI membaca larangan itu dari log, mengikutinya, dan memeriksa riwayat: 0 trailer, seluruh penulis `salfyea` |
 | Tampilan aplikasi belum teruji di browser nyata | Hanya membangun versi web, belum melihatnya | Saya menjalankan aplikasi di Chrome sendiri dan memeriksa tampilannya lewat tangkapan layar |
+| **Tugas 8:** Home di drawer menyisakan `[Home, Home]` (pola `pushReplacement` Tutorial 9) | Mengikuti pola tutorial apa adanya pada awalnya | Diganti `pushAndRemoveUntil`; test `navigation_test.dart` membuktikan `canPop()` berubah dari `true` ke `false` (`4c9b0a2`) |
+| **Tugas 8:** warna AppBar dan drawer berbeda (`Colors.indigo` vs `colorScheme.primary`) | Warna ditulis langsung per halaman | Dipusatkan di `AppBarTheme`; `theme_test.dart` memeriksa warna yang dirender identik (`71a1b2c`) |
+| **Tugas 8:** `ItemCard` memilih tujuan dengan `if (item.name == "Tambah Proyek")` | Menambah kartu baru akan menambah if-else lagi | Tujuan dipindah ke data (`ItemHomepage.destination`) (`30a56d5`) |
+| **Tugas 8:** salah impor `MaxLengthEnforcement`, `FakeViewPadding`, `EmploymentType` | Menulis impor tanpa memeriksa paket `material_ui` | `flutter analyze` menangkap ketiganya sebelum commit |
+| **Tugas 8:** test tanggal mustahil dan test teks ganda | Menulis skenario yang bertentangan dengan fiturnya sendiri | `flutter test` menggagalkannya; skenario diganti dan pencarian dibatasi ke dialog (lihat [log](docs/ai-log.md)) |
+| **Tugas 8:** test lolos belum tentu bermakna | Menulis test untuk fitur tak kasatmata | Mutation check dua kali (gulir ke kolom salah, Home) |
+| **Tugas 8:** `flutter build web` di mesin ini menghasilkan `assets/` kosong | Mencoba memverifikasi di Chrome | Tidak tuntas; diverifikasi lewat test, dan perlu diperiksa dengan `flutter run -d chrome` |
 
 ---
 
@@ -325,3 +438,5 @@ Bisa menjelaskan ulang sendiri
 ```
 
 Karena porsi AI pada pekan ini besar, ukuran keberhasilan saya bukan seberapa cepat tugas selesai, melainkan apakah saya bisa menggambar widget tree, menjelaskan `StatelessWidget` vs `StatefulWidget`, dan menulis ulang `InfoCard`, `ItemHomepage`, dan `ItemCard` dari ingatan. Untuk itu saya memakai PDF ringkasan dan latihan soal (disusun dengan bantuan AI) sebagai bahan belajar.
+
+**Tambahan dari Tugas 8.** Pelajaran yang paling berguna adalah membedakan *test yang lolos* dari *test yang membuktikan sesuatu*. Dari 63 test, dua di antaranya (gulir ke kolom salah dan tumpukan halaman Home) baru bisa dipercaya setelah fiturnya dimatikan sementara dan testnya terbukti gagal. Satu temuan perancangan lain berasal dari mempertanyakan pola tutorial itu sendiri: `pushReplacement` untuk Home tampak benar, tetapi menyisakan halaman utama ganda. Batasannya juga jelas: AI belum melihat aplikasi di browser sungguhan dan belum membaca model Django yang menjadi sumber field formulir, sehingga dua hal itu harus saya periksa sendiri sebelum mengumpulkan. Ukuran keberhasilan saya tetap kemampuan menjelaskan ulang kode: terutama `GlobalKey<FormState>` dengan `validate()`, perbedaan `push`, `pushReplacement`, dan `pushAndRemoveUntil`, serta alasan `DateFormField` dibuat sebagai `FormField`.
