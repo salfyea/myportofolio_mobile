@@ -104,4 +104,56 @@ void main() {
       expect(validateDateOrder(null, null), isNull);
     });
   });
+
+  group('validateRequiredDate', () {
+    // "Hari ini" dibekukan agar test tidak bergantung pada tanggal sebenarnya.
+    final today = DateTime(2026, 11, 23, 15, 30);
+
+    test('menolak tanggal yang belum dipilih', () {
+      expect(validateRequiredDate(null, 'Tanggal mulai'),
+          'Tanggal mulai wajib dipilih!');
+    });
+
+    test('tanggal masa depan diterima jika diizinkan (bawaan)', () {
+      expect(validateRequiredDate(DateTime(2030, 1, 1), 'Tanggal'), isNull);
+    });
+
+    test('tanggal masa depan ditolak jika allowFuture false', () {
+      expect(
+        validateRequiredDate(DateTime(2026, 11, 24), 'Tanggal mulai',
+            allowFuture: false, now: today),
+        'Tanggal mulai tidak boleh di masa depan.',
+      );
+    });
+
+    test('hari ini dan masa lalu diterima meskipun jam berbeda', () {
+      for (final ok in [DateTime(2026, 11, 23, 23, 59), DateTime(2020, 1, 1)]) {
+        expect(
+          validateRequiredDate(ok, 'Tanggal mulai',
+              allowFuture: false, now: today),
+          isNull,
+          reason: '$ok',
+        );
+      }
+    });
+  });
+
+  group('validateEndDate', () {
+    final start = DateTime(2026, 5, 10);
+
+    test('masih berlangsung: tanggal selesai tidak diperlukan', () {
+      expect(validateEndDate(start, null, isOngoing: true), isNull);
+    });
+
+    test('tidak berlangsung tetapi tanggal selesai kosong ditolak', () {
+      expect(validateEndDate(start, null, isOngoing: false), isNotNull);
+    });
+
+    test('tanggal selesai sebelum mulai ditolak, setelahnya diterima', () {
+      expect(validateEndDate(start, DateTime(2026, 5, 9), isOngoing: false),
+          'Tanggal selesai tidak boleh sebelum tanggal mulai.');
+      expect(validateEndDate(start, DateTime(2026, 8, 1), isOngoing: false),
+          isNull);
+    });
+  });
 }
