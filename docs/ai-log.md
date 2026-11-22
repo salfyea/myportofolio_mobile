@@ -1,6 +1,8 @@
-# Log Prompting AI: Tutorial 08 dan Tugas 7
+# Log Prompting AI: Tutorial 08, Tugas 7, dan Tugas 8
 
 Dokumen ini adalah log penggunaan AI pada proyek `myportofolio_mobile`. Ringkasan, analisis, dan evaluasi kritisnya ada di bagian **AI Disclosure** pada [README](../README.md).
+
+> **Cakupan log:** Sesi 1 (Tutorial 08), Sesi 2 (Tugas 7), dan Sesi 3 (Tugas 8). Pengerjaan **Tutorial 09** (drawer, form proyek, dan validator dasar) tidak tercatat di log ini.
 
 - **Tool:** Claude Code (ekstensi VS Code), model Claude Sonnet 5.5.
 - **Isi log:** urutan prompt saya, konteks dan aturan yang saya berikan, apa yang dilakukan AI, serta tindak lanjutnya. Kutipan ditulis apa adanya (sebagian bahasa santai) dan diberi tanda kutip.
@@ -107,6 +109,61 @@ Saya melampirkan PDF soal IA7, tautan situs mata kuliah, dan teks soal yang di-p
 > "ayo bikin ai disclosure nya sekarangg"
 
 **Hasil:** AI membaca bagian AI Disclosure pada README Django saya agar format konsisten, lalu menyusun bagian AI Disclosure pada README ini dan dokumen log ini.
+
+---
+
+## Sesi 3: Individual Assignment 8
+
+### Prompt 13: membaca soal
+
+> "coba baca tugas 8 dokumen"
+
+**Hasil:** AI menemukan `tugas-8 (1).pdf` di folder proyek. Pembaca PDF bawaan gagal (`pdftoppm is not installed`), sehingga AI mengekstrak teksnya dengan PyMuPDF (Python) ke berkas sementara di luar repositori. AI lalu merangkum checklist, pertanyaan reflektif, rubrik, dan tenggat (Senin 23 November 2026, 23.59 WIB), menandai bahwa tenggat jatuh pada hari itu juga, dan menanyakan apakah saya ingin dilanjutkan serta formulir mana yang dipilih.
+
+### Prompt 14: target skor 4 dan perintah yang terpotong
+
+> "iya saya perlu mencapai poin maksimal yaitu 4 utk setiap kriteria penilaian ... coba cek dan"
+
+Saya menempelkan deskripsi skor 4 untuk fungsionalitas, kualitas kode, dan Git dari soal. **Kalimat saya terpotong** di "coba cek dan". AI menafsirkannya sebagai "periksa kondisi repositori, lalu kerjakan" dan langsung melanjutkan ke implementasi tanpa menanyakan maksud kelanjutan kalimat itu. Pada saat yang sama AI memilih sendiri formulir **Experience** (karena kartu "Lihat Experience" sudah ada dan `validateDateOrder` sudah ditulis di Tutorial 9) tanpa menanyakannya.
+
+**Pemeriksaan yang dilakukan AI sebelum menulis kode:**
+
+- Membaca seluruh `lib/`, `test/`, `README.md`, `docs/`, dan `pubspec.yaml`; menjalankan `flutter analyze` (bersih) dan `flutter test` (23 test lolos) sebagai baseline.
+- Memeriksa `git status`, branch, dan riwayat: `main` lokal 6 commit lebih maju dari `origin/main`, ada 7 berkas plugin yang berubah di luar pekerjaan ini (tidak di-commit).
+- Menemukan bahwa log lama mencatat larangan `Co-Authored-By`. Konfigurasi bawaan Claude Code menyuruh menambahkannya, tetapi AI mengikuti aturan saya dan memeriksa bahwa 0 commit di riwayat memuat trailer itu.
+- **Tidak** membuka repositori Django saya, sehingga field formulir Experience (posisi, perusahaan, jenis, tanggal mulai/selesai, deskripsi, tautan) adalah rancangan AI dan belum dicocokkan dengan model Django.
+
+**Rencana 5 branch + 1 branch dokumentasi** (masing-masing `flutter analyze` dan `flutter test` sebelum merge `--no-ff`):
+
+| Branch | Isi |
+| --- | --- |
+| `refactor/shared-app-theme` | Warna AppBar dan header drawer dipusatkan di tema |
+| `feature/experience-logic` | Model `Experience`, formatter tanggal, validator tanggal (+ unit test) |
+| `feature/form-widgets` | `AppTextFormField` dan `DateFormField` (+ test) |
+| `feature/experience-form` | Halaman form dan dialog ringkasan (+ test) |
+| `feature/experience-navigation` | Kartu aksi, opsi drawer, penanda halaman aktif, tumpukan halaman (+ test) |
+| `docs/tugas8` | README, jawaban reflektif, dan log ini |
+
+**Masalah yang muncul saat eksekusi dan cara menemukannya:**
+
+| Masalah | Ditemukan oleh | Perbaikan |
+| --- | --- | --- |
+| `MaxLengthEnforcement` tidak diekspor `material_ui` (kode AI salah impor) | `flutter analyze` | Impor `flutter/services.dart` dengan `show` |
+| Test form salah impor (`FakeViewPadding`, `EmploymentType`) | `flutter analyze` | Impor diperbaiki |
+| Test "tanggal selesai sebelum mulai" mengasumsikan bisa membuka bulan sebelumnya pada date picker tanggal selesai. Asumsi itu **salah karena fitur yang AI tulis sendiri mencegahnya** (`firstDate` tanggal selesai = tanggal mulai) | `flutter test` (tooltip "Previous month" tidak ada) | Skenario diganti: pilih tanggal selesai lebih dulu, lalu tanggal mulai yang lebih akhir; ditambah test bahwa pengguna tidak bisa membuat urutan terbalik lewat UI |
+| Test dialog menemukan teks ganda ("Frontend Intern" ada di dialog dan di kolom di baliknya) | `flutter test` | Pencarian dibatasi ke dalam `AlertDialog` (`inDialog`) |
+| Test lama "menekan tiap tombol" gagal setelah kartu kedua ikut berpindah halaman | `flutter test` | Test diubah mengikuti `item.destination`, bukan nama tombol tertentu |
+| Pola Home `pushReplacement` dari Tutorial 9 menyisakan `[Home, Home]` jika form dibuka lewat kartu | Penalaran AI, lalu dibuktikan test | Home memakai `pushAndRemoveUntil` |
+
+**Verifikasi bahwa test tidak lolos kebetulan (mutation check, dua kali):** AI mematikan sementara `_revealFirstError` dan mengembalikan Home ke `pushReplacement`. Test terkait **gagal** sebagaimana mestinya (kolom salah berada di y = -424, dan `canPop()` bernilai `true`), lalu kode dikembalikan dan semua test hijau lagi.
+
+**Verifikasi visual di Chrome: tidak tuntas.** AI membangun versi web (`flutter build web --release`) dan membukanya di Chrome lewat ekstensi. Pemuatan pertama menampilkan halaman utama dengan tujuh kartu, termasuk kartu teal **Tambah Experience**, tetapi semua ikon tampil sebagai kotak karena folder `assets/` pada hasil build web di mesin ini kosong (build melaporkan sukses; penyebabnya tidak diselidiki lebih jauh). Setelah AI menyalin aset dari `build/flutter_assets` sebagai jalan pintas, tangkapan layar gagal tiga kali berturut-turut (*timeout*, dua tab berbeda), sehingga AI berhenti dan tidak melanjutkan. **Alur formulir, dialog, dan drawer belum pernah AI lihat di browser sungguhan**; keyakinan atas perilakunya bersumber dari test otomatis, dan pemeriksaan di Chrome (`flutter run -d chrome`) perlu saya lakukan sendiri.
+
+**Kelemahan alur yang ditemukan AI pada dirinya sendiri:** saat memecah satu branch menjadi dua commit, `flutter analyze | tail` memakai pipa sehingga kode keluar `analyze` tertutup oleh `tail`; satu temuan analyzer (dari berkas test yang belum di-commit) tidak menghentikan rangkaian perintah. Kode yang di-commit tidak terdampak, tetapi pola itu rapuh dan seharusnya diperiksa dengan kode keluar, bukan dengan `tail`.
+
+### Prompt 15: dokumentasi
+
+README dan log ini disusun AI dari hasil kerja di atas. Jawaban reflektif Tugas 8 ditulis dengan merujuk kode yang benar-benar ada (nama berkas, fungsi, dan test), dan klaim perilaku `pushReplacement` vs `pushAndRemoveUntil` dibuktikan lewat test di atas, bukan hanya teori.
 
 ---
 
