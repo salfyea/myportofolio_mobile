@@ -65,6 +65,29 @@ void main() {
           findsOneWidget);
     });
 
+    testWidgets('pesan kesalahan panjang boleh lebih dari satu baris',
+        (tester) async {
+      // Regresi: pada layar ponsel, pesan yang hanya satu baris dipotong "..."
+      // sehingga petunjuk di ujung kalimat tidak terbaca.
+      final key = GlobalKey<FormState>();
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      const message = 'Pesan kesalahan yang cukup panjang untuk layar sempit.';
+
+      await tester.pumpWidget(host(
+        key,
+        AppTextFormField(
+          controller: controller,
+          label: 'Tautan',
+          validator: (_) => message,
+        ),
+      ));
+      key.currentState!.validate();
+      await tester.pump();
+
+      expect(tester.widget<Text>(find.text(message)).maxLines, greaterThan(1));
+    });
+
     testWidgets('kolom multibaris memakai papan ketik multiline',
         (tester) async {
       final controller = TextEditingController();
@@ -145,6 +168,19 @@ void main() {
       expect(key.currentState!.validate(), isFalse);
       await tester.pump();
       expect(find.text('Tanggal mulai wajib dipilih!'), findsOneWidget);
+    });
+
+    testWidgets('pesan kesalahan tanggal boleh lebih dari satu baris',
+        (tester) async {
+      final key = GlobalKey<FormState>();
+      const message =
+          'Tanggal selesai wajib dipilih, atau aktifkan "Masih berlangsung".';
+      await tester.pumpWidget(host(key, buildField(validator: (_) => message)));
+
+      key.currentState!.validate();
+      await tester.pump();
+
+      expect(tester.widget<Text>(find.text(message)).maxLines, greaterThan(1));
     });
 
     testWidgets('reset() mengosongkan tanggal yang sudah dipilih',

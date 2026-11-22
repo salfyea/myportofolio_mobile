@@ -61,6 +61,9 @@ class DateFormField extends FormField<DateTime> {
                  hintText: 'Pilih tanggal',
                  enabled: isEnabled,
                  errorText: field.errorText,
+                 // Pesan kesalahan boleh lebih dari satu baris agar tidak
+                 // terpotong "..." pada layar sempit.
+                 errorMaxLines: 3,
                  suffixIcon: const Icon(Icons.calendar_month),
                  border: OutlineInputBorder(
                    borderRadius: BorderRadius.circular(5.0),
