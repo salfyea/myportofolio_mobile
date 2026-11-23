@@ -2,17 +2,18 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/main.dart';
+
+import 'support/test_app.dart';
 
 const homeText = 'Selamat datang di MyPortfolio Mobile!';
 
 /// Layar cukup besar agar seluruh kartu menu terlihat tanpa menggulir.
-Future<void> openApp(WidgetTester tester) async {
+Future<void> openApp(WidgetTester tester, {String? loggedInToken}) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(800, 1200);
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  await tester.pumpWidget(const MyApp());
+  await tester.pumpWidget(fakeApp(loggedInToken: loggedInToken));
 }
 
 Future<void> openDrawer(WidgetTester tester) async {
@@ -113,7 +114,8 @@ void main() {
   testWidgets(
     'berpindah antara form Experience dan form Project lewat drawer',
     (tester) async {
-      await openApp(tester);
+      // Add Project dijaga login, jadi mulai dalam keadaan sudah login.
+      await openApp(tester, loggedInToken: 'tok');
 
       await tapDrawerItem(tester, 'Add Experience');
       expect(find.text('Add Experience Form'), findsOneWidget);

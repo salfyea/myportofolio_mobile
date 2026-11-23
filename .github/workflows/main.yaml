@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Dorongan baru ke branch yang sama membatalkan run lama yang belum selesai.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # CI: very_good_workflows menjalankan `flutter pub get`, perintah `setup`
+  # (membuat berkas *.g.dart yang tidak ada di Git), `dart format` (gagal bila
+  # ada berkas yang belum rapi), `flutter analyze`, lalu `flutter test` dengan
+  # coverage. `*.g.dart` dikeluarkan dari laporan coverage; batas minimalnya 0
+  # karena pengujian bukan syarat gagal pada tahap ini.
+  build:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/flutter_package.yml@v2
+    with:
+      setup: dart run build_runner build --delete-conflicting-outputs
+      coverage_excludes: "**/*.g.dart"
+      min_coverage: 0
+      timeout_minutes: 15
+
+  # CD: hanya berjalan setelah `build` hijau. Mengompilasi APK release dan
+  # menyimpannya sebagai artefak `app-release-apk` yang bisa diunduh dari
+  # ringkasan run di tab Actions.
+  build_apk:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # *.g.dart tidak ada di repositori, jadi harus dibuat ulang sebelum build.
+      - run: dart run build_runner build --delete-conflicting-outputs
+
+      # Tanpa --dart-define, APK memakai http://10.0.2.2:8000 (emulator).
+      # Di sini diarahkan ke backend yang sudah di-deploy.
+      - run: >
+          flutter build apk --release
+          --dart-define=API_BASE_URL=https://salwa-alifia-myportofolio.pws.cs.ui.ac.id
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

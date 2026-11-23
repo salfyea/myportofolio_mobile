@@ -21,6 +21,7 @@ class AppTextFormField extends StatelessWidget {
     this.maxLength,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.none,
+    this.obscureText = false,
   });
 
   /// Pengendali isi kolom; dimiliki dan di-`dispose` oleh halaman pemanggil.
@@ -52,12 +53,16 @@ class AppTextFormField extends StatelessWidget {
   /// Aturan huruf kapital otomatis (mis. [TextCapitalization.words] untuk nama).
   final TextCapitalization textCapitalization;
 
+  /// Menyamarkan isian (kolom password). Hanya berlaku untuk kolom satu baris.
+  final bool obscureText;
+
   @override
   Widget build(BuildContext context) {
     final isMultiline = maxLines > 1;
 
     return TextFormField(
       controller: controller,
+      obscureText: obscureText,
       maxLines: maxLines,
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.none,
