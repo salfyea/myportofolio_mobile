@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,23 @@ http.Response jsonResponse(Object body, {int status = 200}) =>
 /// [ApiClient] yang semua permintaannya dijawab oleh [handler].
 ApiClient fakeApiClient(MockClientHandler handler) =>
     ApiClient(client: MockClient(handler), baseUrl: 'http://api.test');
+
+/// Handler bawaan: daftar proyek kosong; endpoint lain tidak ditemukan.
+Future<http.Response> emptyBackend(http.Request request) async {
+  if (request.method == 'GET' && request.url.path == '/api/v1/projects/') {
+    return jsonResponse(<Object>[]);
+  }
+  return jsonResponse({'detail': 'Data tidak ditemukan.'}, status: 404);
+}
+
+/// Aplikasi utuh ([MyApp]) dengan backend palsu, tanpa jaringan.
+///
+/// [handler] menjawab semua permintaan HTTP; bawaannya [emptyBackend]. Isi
+/// [loggedInToken] untuk memulai dalam keadaan sudah login.
+Widget fakeApp({MockClientHandler? handler, String? loggedInToken}) => MyApp(
+  apiClient: fakeApiClient(handler ?? emptyBackend),
+  initialToken: loggedInToken,
+);
 
 /// Membungkus [home] dengan [MaterialApp] dan provider [ApiClient]/[AuthState].
 ///

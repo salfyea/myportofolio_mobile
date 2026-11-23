@@ -2,7 +2,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/main.dart';
+
+import 'support/test_app.dart';
 
 /// Mengambil warna latar AppBar yang benar-benar dirender pada halaman aktif.
 Color renderedAppBarColor(WidgetTester tester) {
@@ -23,7 +24,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(const MyApp());
+      await tester.pumpWidget(fakeApp(loggedInToken: 'tok'));
       final primary = Theme.of(tester.element(find.byType(AppBar)))
           .colorScheme
           .primary;

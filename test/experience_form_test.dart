@@ -6,6 +6,8 @@ import 'package:myportofolio_mobile/models/experience.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/utils/formatters.dart';
 
+import 'support/test_app.dart';
+
 /// Mengatur ukuran layar virtual (piksel logis) untuk satu test.
 void setScreenSize(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1.0;
@@ -18,7 +20,12 @@ void setScreenSize(WidgetTester tester, Size size) {
 /// Layar tinggi agar seluruh formulir terlihat tanpa menggulir.
 Future<void> openForm(WidgetTester tester) async {
   setScreenSize(tester, const Size(800, 1800));
-  await tester.pumpWidget(const MaterialApp(home: ExperienceFormPage()));
+  await tester.pumpWidget(
+    testApp(
+      client: fakeApiClient(emptyBackend),
+      home: const ExperienceFormPage(),
+    ),
+  );
 }
 
 Finder textField(String label) => find.widgetWithText(TextFormField, label);
@@ -252,7 +259,12 @@ void main() {
       setScreenSize(tester, phone);
       // Papan ketik setinggi 300 px menutupi bagian bawah layar.
       tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-      await tester.pumpWidget(const MaterialApp(home: ExperienceFormPage()));
+      await tester.pumpWidget(
+        testApp(
+          client: fakeApiClient(emptyBackend),
+          home: const ExperienceFormPage(),
+        ),
+      );
 
       final scrollable = find.byType(Scrollable).first;
       await tester.scrollUntilVisible(
