@@ -1,7 +1,7 @@
-/// Fungsi pemformat tampilan (tanggal dan durasi) berbahasa Indonesia.
+/// Fungsi pemformat tampilan (tanggal, durasi, dan bintang) berbahasa Indonesia.
 ///
 /// Ditulis manual tanpa paket `intl` agar tidak menambah dependensi hanya untuk
-/// dua format sederhana. Semua fungsi murni sehingga mudah diuji.
+/// beberapa format sederhana. Semua fungsi murni sehingga mudah diuji.
 library;
 
 const List<String> _monthNames = [
@@ -18,6 +18,16 @@ const List<String> _monthNames = [
   'November',
   'Desember',
 ];
+
+/// Meringkas data bintang dari API menjadi satu kalimat, misalnya
+/// `"3 bintang, diberikan oleh owner, visitor"`.
+///
+/// [names] adalah nama pengguna pemberi bintang yang dipisah koma; bila kosong,
+/// hanya jumlahnya ([count]) yang ditampilkan.
+String formatStarSummary(int count, String names) {
+  final total = '$count bintang';
+  return names.isEmpty ? total : '$total, diberikan oleh $names';
+}
 
 /// Memformat [date] menjadi teks seperti `"5 Januari 2025"`.
 String formatDate(DateTime date) =>

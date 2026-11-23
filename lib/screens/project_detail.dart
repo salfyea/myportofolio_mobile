@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/utils/formatters.dart';
 import 'package:myportofolio_mobile/widgets/detail_section.dart';
 import 'package:myportofolio_mobile/widgets/remote_image.dart';
 
@@ -58,7 +59,12 @@ class ProjectDetailPage extends StatelessWidget {
 
                   DetailSection(
                     label: 'Bintang',
-                    child: Text(_starSummary(project)),
+                    child: Text(
+                      formatStarSummary(
+                        project.starCount,
+                        project.starredByNames,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -67,13 +73,5 @@ class ProjectDetailPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _starSummary(Project project) {
-    final count = '${project.starCount} bintang';
-    if (project.starredByNames.isEmpty) {
-      return count;
-    }
-    return '$count, diberikan oleh ${project.starredByNames}';
   }
 }

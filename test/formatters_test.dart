@@ -5,6 +5,19 @@ import 'package:myportofolio_mobile/models/experience.dart';
 import 'package:myportofolio_mobile/utils/formatters.dart';
 
 void main() {
+  group('formatStarSummary', () {
+    test('tanpa pemberi bintang hanya menampilkan jumlahnya', () {
+      expect(formatStarSummary(0, ''), '0 bintang');
+    });
+
+    test('menyebut pemberi bintang bila ada', () {
+      expect(
+        formatStarSummary(3, 'owner, visitor'),
+        '3 bintang, diberikan oleh owner, visitor',
+      );
+    });
+  });
+
   group('formatDate', () {
     test('memakai nama bulan bahasa Indonesia', () {
       expect(formatDate(DateTime(2025, 1, 5)), '5 Januari 2025');
