@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- usesCleartextTraffic hanya untuk pengembangan lokal (http://10.0.2.2:8000).
+         Hapus untuk rilis produksi yang memakai HTTPS saja. -->
     <application
+        android:usesCleartextTraffic="true"
         android:label="myportofolio_mobile"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
