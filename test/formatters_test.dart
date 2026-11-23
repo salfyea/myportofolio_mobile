@@ -15,29 +15,43 @@ void main() {
 
   group('formatDuration', () {
     test('menyatakan tahun dan bulan penuh', () {
-      expect(formatDuration(DateTime(2024, 1, 10), DateTime(2025, 4, 10)),
-          '1 tahun 3 bulan');
+      expect(
+        formatDuration(DateTime(2024, 1, 10), DateTime(2025, 4, 10)),
+        '1 tahun 3 bulan',
+      );
     });
 
     test('hanya tahun atau hanya bulan bila sisanya nol', () {
-      expect(formatDuration(DateTime(2023, 6, 1), DateTime(2025, 6, 1)),
-          '2 tahun');
-      expect(formatDuration(DateTime(2025, 6, 1), DateTime(2025, 9, 1)),
-          '3 bulan');
+      expect(
+        formatDuration(DateTime(2023, 6, 1), DateTime(2025, 6, 1)),
+        '2 tahun',
+      );
+      expect(
+        formatDuration(DateTime(2025, 6, 1), DateTime(2025, 9, 1)),
+        '3 bulan',
+      );
     });
 
     test('bulan baru dihitung setelah hari mencapai hari mulai', () {
-      expect(formatDuration(DateTime(2025, 1, 15), DateTime(2025, 3, 14)),
-          '1 bulan');
-      expect(formatDuration(DateTime(2025, 1, 15), DateTime(2025, 3, 15)),
-          '2 bulan');
+      expect(
+        formatDuration(DateTime(2025, 1, 15), DateTime(2025, 3, 14)),
+        '1 bulan',
+      );
+      expect(
+        formatDuration(DateTime(2025, 1, 15), DateTime(2025, 3, 15)),
+        '2 bulan',
+      );
     });
 
     test('kurang dari sebulan atau urutan terbalik', () {
-      expect(formatDuration(DateTime(2025, 5, 1), DateTime(2025, 5, 20)),
-          'Kurang dari 1 bulan');
-      expect(formatDuration(DateTime(2025, 5, 20), DateTime(2025, 5, 1)),
-          'Kurang dari 1 bulan');
+      expect(
+        formatDuration(DateTime(2025, 5, 1), DateTime(2025, 5, 20)),
+        'Kurang dari 1 bulan',
+      );
+      expect(
+        formatDuration(DateTime(2025, 5, 20), DateTime(2025, 5, 1)),
+        'Kurang dari 1 bulan',
+      );
     });
   });
 

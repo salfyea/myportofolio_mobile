@@ -59,7 +59,10 @@ void main() {
     expect(find.text('Posisi tidak boleh kosong!'), findsOneWidget);
     expect(find.text('Perusahaan tidak boleh kosong!'), findsOneWidget);
     expect(find.text('Tanggal mulai wajib dipilih!'), findsOneWidget);
-    expect(find.textContaining('Tanggal selesai wajib dipilih'), findsOneWidget);
+    expect(
+      find.textContaining('Tanggal selesai wajib dipilih'),
+      findsOneWidget,
+    );
     expect(find.text('Deskripsi tidak boleh kosong!'), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
   });
@@ -77,26 +80,34 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('batas panjang dan format URL ditolak walau kolom terisi',
-      (tester) async {
+  testWidgets('batas panjang dan format URL ditolak walau kolom terisi', (
+    tester,
+  ) async {
     await openForm(tester);
     await fillValidForm(tester);
     await tester.enterText(textField('Posisi / Jabatan'), 'a' * 101);
     await tester.enterText(textField('Deskripsi'), 'b' * 1001);
     await tester.enterText(
-        textField('Tautan Pendukung (opsional)'), 'linkedin.com/in/saya');
+      textField('Tautan Pendukung (opsional)'),
+      'linkedin.com/in/saya',
+    );
     await tapSave(tester);
 
-    expect(find.text('Posisi terlalu panjang (maksimal 100 karakter).'),
-        findsOneWidget);
-    expect(find.text('Deskripsi terlalu panjang (maksimal 1000 karakter).'),
-        findsOneWidget);
+    expect(
+      find.text('Posisi terlalu panjang (maksimal 100 karakter).'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Deskripsi terlalu panjang (maksimal 1000 karakter).'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Tautan tidak valid'), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('pesan kesalahan hilang setelah isian diperbaiki',
-      (tester) async {
+  testWidgets('pesan kesalahan hilang setelah isian diperbaiki', (
+    tester,
+  ) async {
     await openForm(tester);
     await tapSave(tester);
     expect(find.text('Posisi tidak boleh kosong!'), findsOneWidget);
@@ -106,8 +117,9 @@ void main() {
     expect(find.text('Posisi tidak boleh kosong!'), findsNothing);
   });
 
-  testWidgets('data valid menampilkan ringkasan; Tutup mengosongkan formulir',
-      (tester) async {
+  testWidgets('data valid menampilkan ringkasan; Tutup mengosongkan formulir', (
+    tester,
+  ) async {
     await openForm(tester);
     await fillValidForm(tester);
 
@@ -115,8 +127,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Magang').last);
     await tester.pumpAndSettle();
-    await tester.enterText(textField('Tautan Pendukung (opsional)'),
-        'https://acme.example/intern');
+    await tester.enterText(
+      textField('Tautan Pendukung (opsional)'),
+      'https://acme.example/intern',
+    );
     await tapSave(tester);
 
     final today = formatDate(DateTime.now());
@@ -140,8 +154,9 @@ void main() {
     expect(find.text('Penuh Waktu'), findsOneWidget);
   });
 
-  testWidgets('tautan opsional kosong tidak ditampilkan pada ringkasan',
-      (tester) async {
+  testWidgets('tautan opsional kosong tidak ditampilkan pada ringkasan', (
+    tester,
+  ) async {
     await openForm(tester);
     await fillValidForm(tester);
     await tapSave(tester);
@@ -150,8 +165,9 @@ void main() {
     expect(find.text('Tautan'), findsNothing);
   });
 
-  testWidgets('"Masih berlangsung" menonaktifkan tanggal selesai',
-      (tester) async {
+  testWidgets('"Masih berlangsung" menonaktifkan tanggal selesai', (
+    tester,
+  ) async {
     await openForm(tester);
     await tester.enterText(textField('Posisi / Jabatan'), 'Intern');
     await tester.enterText(textField('Perusahaan / Organisasi'), 'Acme');
@@ -168,8 +184,10 @@ void main() {
     expect(find.byType(DatePickerDialog), findsNothing);
 
     await tapSave(tester);
-    expect(find.text('${formatDate(DateTime.now())} - Sekarang'),
-        findsOneWidget);
+    expect(
+      find.text('${formatDate(DateTime.now())} - Sekarang'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tanggal selesai sebelum tanggal mulai ditolak', (tester) async {
@@ -191,15 +209,18 @@ void main() {
     // Tanggal mulai = hari ini, yang jatuh setelah tanggal selesai tadi.
     // Kolom tanggal selesai langsung divalidasi ulang tanpa menekan Simpan.
     await pickDate(tester, 'Tanggal Mulai');
-    expect(find.text('Tanggal selesai tidak boleh sebelum tanggal mulai.'),
-        findsOneWidget);
+    expect(
+      find.text('Tanggal selesai tidak boleh sebelum tanggal mulai.'),
+      findsOneWidget,
+    );
 
     await tapSave(tester);
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('tanggal selesai tidak bisa dipilih sebelum tanggal mulai',
-      (tester) async {
+  testWidgets('tanggal selesai tidak bisa dipilih sebelum tanggal mulai', (
+    tester,
+  ) async {
     await openForm(tester);
     await pickDate(tester, 'Tanggal Mulai'); // hari ini
 
@@ -225,23 +246,27 @@ void main() {
   });
 
   testWidgets(
-      'layar ponsel dengan papan ketik: Simpan terjangkau dan kolom salah terlihat',
-      (tester) async {
-    const phone = Size(360, 640);
-    setScreenSize(tester, phone);
-    // Papan ketik setinggi 300 px menutupi bagian bawah layar.
-    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
-    await tester.pumpWidget(const MaterialApp(home: ExperienceFormPage()));
+    'layar ponsel dengan papan ketik: Simpan terjangkau dan kolom salah terlihat',
+    (tester) async {
+      const phone = Size(360, 640);
+      setScreenSize(tester, phone);
+      // Papan ketik setinggi 300 px menutupi bagian bawah layar.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      await tester.pumpWidget(const MaterialApp(home: ExperienceFormPage()));
 
-    final scrollable = find.byType(Scrollable).first;
-    await tester.scrollUntilVisible(find.text('Simpan'), 150,
-        scrollable: scrollable);
-    await tester.tap(find.text('Simpan'));
-    await tester.pumpAndSettle();
+      final scrollable = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.text('Simpan'),
+        150,
+        scrollable: scrollable,
+      );
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
 
-    // Halaman menggulir kembali ke kolom pertama yang salah.
-    final error = tester.getRect(find.text('Posisi tidak boleh kosong!'));
-    expect(error.top, greaterThanOrEqualTo(0));
-    expect(error.bottom, lessThanOrEqualTo(phone.height - 300));
-  });
+      // Halaman menggulir kembali ke kolom pertama yang salah.
+      final error = tester.getRect(find.text('Posisi tidak boleh kosong!'));
+      expect(error.top, greaterThanOrEqualTo(0));
+      expect(error.bottom, lessThanOrEqualTo(phone.height - 300));
+    },
+  );
 }

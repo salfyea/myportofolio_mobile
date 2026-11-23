@@ -35,8 +35,9 @@ bool isSelected(WidgetTester tester, String label) =>
     tester.widget<ListTile>(find.widgetWithText(ListTile, label)).selected;
 
 void main() {
-  testWidgets('kartu Tambah Experience membuka form; Back sistem ke menu',
-      (tester) async {
+  testWidgets('kartu Tambah Experience membuka form; Back sistem ke menu', (
+    tester,
+  ) async {
     await openApp(tester);
 
     await tester.tap(find.text('Tambah Experience'));
@@ -49,8 +50,9 @@ void main() {
     expect(find.text(homeText), findsOneWidget);
   });
 
-  testWidgets('drawer Add Experience membuka form dengan pushReplacement',
-      (tester) async {
+  testWidgets('drawer Add Experience membuka form dengan pushReplacement', (
+    tester,
+  ) async {
     await openApp(tester);
 
     await tapDrawerItem(tester, 'Add Experience');
@@ -59,8 +61,9 @@ void main() {
     expect(navigator(tester).canPop(), isFalse);
   });
 
-  testWidgets('Home di drawer menyisakan tepat satu halaman utama',
-      (tester) async {
+  testWidgets('Home di drawer menyisakan tepat satu halaman utama', (
+    tester,
+  ) async {
     await openApp(tester);
 
     // Menu -> form (push dari kartu) -> Home (drawer).
@@ -89,8 +92,9 @@ void main() {
     expect(isSelected(tester, 'Add Experience'), isTrue);
   });
 
-  testWidgets('memilih halaman aktif hanya menutup drawer, isian tetap ada',
-      (tester) async {
+  testWidgets('memilih halaman aktif hanya menutup drawer, isian tetap ada', (
+    tester,
+  ) async {
     await openApp(tester);
     await tester.tap(find.text('Tambah Experience'));
     await tester.pumpAndSettle();
@@ -106,18 +110,20 @@ void main() {
     expect(find.text('Add Experience Form'), findsOneWidget);
   });
 
-  testWidgets('berpindah antara form Experience dan form Project lewat drawer',
-      (tester) async {
-    await openApp(tester);
+  testWidgets(
+    'berpindah antara form Experience dan form Project lewat drawer',
+    (tester) async {
+      await openApp(tester);
 
-    await tapDrawerItem(tester, 'Add Experience');
-    expect(find.text('Add Experience Form'), findsOneWidget);
+      await tapDrawerItem(tester, 'Add Experience');
+      expect(find.text('Add Experience Form'), findsOneWidget);
 
-    await tapDrawerItem(tester, 'Add Project');
-    expect(find.text('Add Project Form'), findsOneWidget);
+      await tapDrawerItem(tester, 'Add Project');
+      expect(find.text('Add Project Form'), findsOneWidget);
 
-    await tapDrawerItem(tester, 'Add Experience');
-    expect(find.text('Add Experience Form'), findsOneWidget);
-    expect(navigator(tester).canPop(), isFalse);
-  });
+      await tapDrawerItem(tester, 'Add Experience');
+      expect(find.text('Add Experience Form'), findsOneWidget);
+      expect(navigator(tester).canPop(), isFalse);
+    },
+  );
 }
