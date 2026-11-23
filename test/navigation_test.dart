@@ -111,6 +111,39 @@ void main() {
     expect(find.text('Add Experience Form'), findsOneWidget);
   });
 
+  testWidgets('drawer menandai Skills dan Add Skill saat aktif', (
+    tester,
+  ) async {
+    await openApp(tester, loggedInToken: 'tok');
+
+    await tapDrawerItem(tester, 'Skills');
+    await openDrawer(tester);
+    expect(isSelected(tester, 'Skills'), isTrue);
+    expect(isSelected(tester, 'Add Skill'), isFalse);
+    expect(isSelected(tester, 'Home'), isFalse);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Add Skill'));
+    await tester.pumpAndSettle();
+
+    await openDrawer(tester);
+    expect(isSelected(tester, 'Add Skill'), isTrue);
+    expect(isSelected(tester, 'Skills'), isFalse);
+  });
+
+  testWidgets('berpindah Skills <-> Add Skill tidak menumpuk halaman', (
+    tester,
+  ) async {
+    await openApp(tester, loggedInToken: 'tok');
+
+    await tapDrawerItem(tester, 'Skills');
+    await tapDrawerItem(tester, 'Add Skill');
+    expect(find.text('Add Skill Form'), findsOneWidget);
+    await tapDrawerItem(tester, 'Skills');
+
+    expect(find.text('Skills'), findsWidgets);
+    expect(navigator(tester).canPop(), isFalse);
+  });
+
   testWidgets(
     'berpindah antara form Experience dan form Project lewat drawer',
     (tester) async {

@@ -60,7 +60,8 @@ void main() {
         .where((item) => item.requiresLogin)
         .map((i) => i.name);
 
-    expect(guarded, ['Tambah Proyek']);
+    // Experience masih lokal (belum terhubung ke API), jadi tidak dijaga.
+    expect(guarded, ['Tambah Proyek', 'Tambah Skill']);
   });
 
   testWidgets('menekan tiap tombol memunculkan SnackBar sesuai namanya', (
