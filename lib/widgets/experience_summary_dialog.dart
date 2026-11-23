@@ -24,10 +24,13 @@ class ExperienceSummaryDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final end = experience.endDate;
-    final period = '${formatDate(experience.startDate)} - '
+    final period =
+        '${formatDate(experience.startDate)} - '
         '${end == null ? 'Sekarang' : formatDate(end)}';
-    final duration =
-        formatDuration(experience.startDate, end ?? now ?? DateTime.now());
+    final duration = formatDuration(
+      experience.startDate,
+      end ?? now ?? DateTime.now(),
+    );
 
     return AlertDialog(
       icon: Icon(
@@ -57,9 +60,8 @@ class ExperienceSummaryDialog extends StatelessWidget {
                 _SummaryRow(label: 'Tautan', value: experience.link),
               Text(
                 'Catatan: data belum disimpan ke database.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontStyle: FontStyle.italic,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(fontStyle: FontStyle.italic),
               ),
             ],
           ),

@@ -28,8 +28,7 @@ class DateFormField extends FormField<DateTime> {
 
            Future<void> pickDate() async {
              // initialDate wajib berada di antara firstDate dan lastDate.
-             final suggested =
-                 field.value ?? pickerStartDate ?? DateTime.now();
+             final suggested = field.value ?? pickerStartDate ?? DateTime.now();
              final initial = suggested.isBefore(firstDate)
                  ? firstDate
                  : (suggested.isAfter(lastDate) ? lastDate : suggested);

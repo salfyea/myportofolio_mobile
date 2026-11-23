@@ -15,28 +15,32 @@ Color renderedAppBarColor(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('AppBar halaman utama dan semua form memakai warna tema yang sama',
-      (tester) async {
-    tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = const Size(800, 1200);
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+  testWidgets(
+    'AppBar halaman utama dan semua form memakai warna tema yang sama',
+    (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 1200);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
-    final primary = Theme.of(tester.element(find.byType(AppBar))).colorScheme.primary;
-    final homeColor = renderedAppBarColor(tester);
-    expect(homeColor, primary);
+      await tester.pumpWidget(const MyApp());
+      final primary = Theme.of(tester.element(find.byType(AppBar)))
+          .colorScheme
+          .primary;
+      final homeColor = renderedAppBarColor(tester);
+      expect(homeColor, primary);
 
-    await tester.tap(find.text('Tambah Proyek'));
-    await tester.pumpAndSettle();
-    expect(find.text('Add Project Form'), findsOneWidget);
-    expect(renderedAppBarColor(tester), homeColor);
+      await tester.tap(find.text('Tambah Proyek'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add Project Form'), findsOneWidget);
+      expect(renderedAppBarColor(tester), homeColor);
 
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Tambah Experience'));
-    await tester.pumpAndSettle();
-    expect(find.text('Add Experience Form'), findsOneWidget);
-    expect(renderedAppBarColor(tester), homeColor);
-  });
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tambah Experience'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add Experience Form'), findsOneWidget);
+      expect(renderedAppBarColor(tester), homeColor);
+    },
+  );
 }

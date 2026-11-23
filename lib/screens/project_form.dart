@@ -36,9 +36,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Warna AppBar mengikuti AppBarTheme di MyApp.
-      appBar: AppBar(
-        title: const Center(child: Text('Add Project Form')),
-      ),
+      appBar: AppBar(title: const Center(child: Text('Add Project Form'))),
       drawer: const LeftDrawer(selected: DrawerDestination.addProject),
       body: Form(
         key: _formKey,
@@ -102,10 +100,12 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   ),
                   initialValue: _category,
                   items: _categories
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
                       .toList(),
                   onChanged: (String? newValue) {
                     setState(() {

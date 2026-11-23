@@ -59,7 +59,8 @@ String? validateOptionalUrl(String? value, String label, {int? maxLength}) {
   }
 
   final uri = Uri.tryParse(text);
-  final isWebScheme = uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+  final isWebScheme =
+      uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   final hasHost = uri != null && uri.host.isNotEmpty;
 
   if (text.contains(RegExp(r'\s')) || !isWebScheme || !hasHost) {

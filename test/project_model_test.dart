@@ -55,18 +55,20 @@ void main() {
   });
 
   group('Project.toJson', () {
-    test('hanya mengirim field yang boleh ditulis klien, dengan kunci snake_case',
-        () {
-      final json = Project.fromJson(apiJson).toJson();
+    test(
+      'hanya mengirim field yang boleh ditulis klien, dengan kunci snake_case',
+      () {
+        final json = Project.fromJson(apiJson).toJson();
 
-      expect(json, {
-        'title': 'MyPortfolio Mobile',
-        'description': 'Klien Flutter untuk portofolio.',
-        'category': 'Mobile Development',
-        'link': 'https://github.com/salfyea/myportofolio_mobile',
-        'project_image_url': 'https://example.com/cover.png',
-      });
-    });
+        expect(json, {
+          'title': 'MyPortfolio Mobile',
+          'description': 'Klien Flutter untuk portofolio.',
+          'category': 'Mobile Development',
+          'link': 'https://github.com/salfyea/myportofolio_mobile',
+          'project_image_url': 'https://example.com/cover.png',
+        });
+      },
+    );
 
     test('id dari server dan data bintang tidak ikut dikirim', () {
       final json = Project.fromJson(apiJson).toJson();
@@ -77,16 +79,19 @@ void main() {
       expect(json.containsKey('starred_by_names'), isFalse);
     });
 
-    test('proyek baru buatan form tidak punya id dan memakai default kosong', () {
-      const project = Project(
-        title: 'Baru',
-        description: 'd',
-        category: 'Other',
-      );
+    test(
+      'proyek baru buatan form tidak punya id dan memakai default kosong',
+      () {
+        const project = Project(
+          title: 'Baru',
+          description: 'd',
+          category: 'Other',
+        );
 
-      expect(project.id, isNull);
-      expect(project.toJson()['link'], '');
-      expect(project.toJson()['project_image_url'], '');
-    });
+        expect(project.id, isNull);
+        expect(project.toJson()['link'], '');
+        expect(project.toJson()['project_image_url'], '');
+      },
+    );
   });
 }

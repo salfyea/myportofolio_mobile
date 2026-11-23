@@ -62,10 +62,12 @@ class AppTextFormField extends StatelessWidget {
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.none,
       keyboardType:
-          keyboardType ?? (isMultiline ? TextInputType.multiline : TextInputType.text),
+          keyboardType ??
+          (isMultiline ? TextInputType.multiline : TextInputType.text),
       // Kolom satu baris pindah ke kolom berikutnya; multibaris menerima Enter.
-      textInputAction:
-          isMultiline ? TextInputAction.newline : TextInputAction.next,
+      textInputAction: isMultiline
+          ? TextInputAction.newline
+          : TextInputAction.next,
       textCapitalization: textCapitalization,
       decoration: InputDecoration(
         labelText: label,
