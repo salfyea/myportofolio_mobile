@@ -24,10 +24,14 @@ void main() {
 /// tree, jadi layar tidak membuat klien HTTP sendiri dan tes bisa memasang
 /// [apiClient] palsu lewat parameter ini.
 class MyApp extends StatefulWidget {
-  const MyApp({super.key, this.apiClient});
+  const MyApp({super.key, this.apiClient, this.initialToken});
 
   /// Klien API yang dipakai aplikasi; bila kosong, dibuat dengan `ApiClient()`.
   final ApiClient? apiClient;
+
+  /// Token untuk memulai aplikasi dalam keadaan sudah login (dipakai tes).
+  /// Bila kosong, aplikasi mulai dalam keadaan logout.
+  final String? initialToken;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -48,7 +52,10 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: _apiClient),
-        ChangeNotifierProvider<AuthState>(create: (_) => AuthState(_apiClient)),
+        ChangeNotifierProvider<AuthState>(
+          create: (_) =>
+              AuthState(_apiClient, initialToken: widget.initialToken),
+        ),
       ],
       child: MaterialApp(
         title: 'MyPortfolio',

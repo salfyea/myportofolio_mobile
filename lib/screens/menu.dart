@@ -1,8 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:provider/provider.dart';
 
 /// Halaman menu utama MyPortfolio Mobile.
 ///
@@ -12,7 +16,7 @@ import 'package:myportofolio_mobile/widgets/project_card.dart';
 /// Susunan halaman: [InfoCard] identitas di bagian atas, pesan sambutan, lalu
 /// kisi [ItemCard] untuk tiap menu portofolio.
 class MyHomePage extends StatelessWidget {
-  MyHomePage({super.key});
+  const MyHomePage({super.key});
 
   final String npm = "2506620280";
   final String nama = "Salwa Alifia Putri";
@@ -21,17 +25,26 @@ class MyHomePage extends StatelessWidget {
   /// Daftar menu aksi yang ditampilkan sebagai kisi tombol.
   ///
   /// Setiap [ItemHomepage] membawa nama, ikon, warna, dan (bila ada) halaman
-  /// tujuannya sendiri, sehingga menambah tombol baru cukup dengan menambah
-  /// satu baris di daftar ini tanpa menyentuh [ItemCard].
-  final List<ItemHomepage> items = [
+  /// tujuan serta aturannya sendiri, sehingga menambah tombol baru cukup dengan
+  /// menambah satu baris di daftar ini tanpa menyentuh [ItemCard].
+  ///
+  /// Tombol terakhir berganti sesuai sesi: **Login** saat belum masuk dan
+  /// **Logout** saat sudah masuk.
+  List<ItemHomepage> itemsFor({required bool isLoggedIn}) => [
     ItemHomepage("Lihat Experience", Icons.work, Colors.blue.shade700),
-    ItemHomepage("Lihat Proyek", Icons.folder, Colors.deepPurple.shade500),
+    ItemHomepage(
+      "Lihat Proyek",
+      Icons.folder,
+      Colors.deepPurple.shade500,
+      destination: (context) => const ProjectListPage(),
+    ),
     ItemHomepage("Lihat Skills", Icons.code, Colors.brown.shade600),
     ItemHomepage(
       "Tambah Proyek",
       Icons.add_circle,
       Colors.green.shade700,
       destination: (context) => const ProjectFormPage(),
+      requiresLogin: true,
     ),
     ItemHomepage(
       "Tambah Experience",
@@ -40,11 +53,39 @@ class MyHomePage extends StatelessWidget {
       destination: (context) => const ExperienceFormPage(),
     ),
     ItemHomepage("Tambah Skill", Icons.playlist_add, Colors.orange.shade800),
-    ItemHomepage("Logout", Icons.logout, Colors.red.shade700),
+    if (isLoggedIn)
+      ItemHomepage("Logout", Icons.logout, Colors.red.shade700, onTap: _logout)
+    else
+      ItemHomepage("Login", Icons.login, Colors.red.shade700, onTap: _login),
   ];
+
+  /// Aksi kartu Login: membuka layar login dan memberi kabar bila berhasil.
+  static Future<void> _login(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (await ensureLoggedIn(context)) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Login berhasil.')));
+    }
+  }
+
+  /// Aksi kartu Logout: mencabut token lalu memberi kabar.
+  static Future<void> _logout(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    await context.read<AuthState>().logout();
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Kamu telah logout.')));
+  }
 
   @override
   Widget build(BuildContext context) {
+    // watch: kisi tombol dibangun ulang saat login/logout (Login <-> Logout).
+    final items = itemsFor(isLoggedIn: context.watch<AuthState>().isLoggedIn);
+
     // Scaffold menyediakan struktur visual dasar halaman (AppBar, Body, SnackBar).
     return Scaffold(
       // AppBar menampilkan bar bagian atas halaman aplikasi.
@@ -178,11 +219,24 @@ class InfoCard extends StatelessWidget {
 /// [destination] opsional: bila diisi, menekan kartu membuka halaman itu
 /// dengan `Navigator.push()`; bila kosong, kartu hanya menampilkan SnackBar
 /// (fitur tersebut belum dibuat).
+///
+/// [requiresLogin] membuat kartu meminta login lebih dulu (lewat
+/// `ensureLoggedIn`) dan baru melanjutkan bila berhasil. [onTap] opsional
+/// adalah aksi yang dijalankan sebelum [destination] dibuka, misalnya Logout.
 class ItemHomepage {
   final String name;
   final IconData icon;
   final Color color;
   final WidgetBuilder? destination;
+  final bool requiresLogin;
+  final Future<void> Function(BuildContext context)? onTap;
 
-  ItemHomepage(this.name, this.icon, this.color, {this.destination});
+  ItemHomepage(
+    this.name,
+    this.icon,
+    this.color, {
+    this.destination,
+    this.requiresLogin = false,
+    this.onTap,
+  });
 }
