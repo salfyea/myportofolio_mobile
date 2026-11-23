@@ -9,21 +9,28 @@ import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:provider/provider.dart';
 
-/// Halaman form untuk menambahkan skill baru ke portofolio lewat API Django.
+/// Halaman form untuk menambah atau mengubah skill lewat API Django.
 ///
 /// Alur **Save**: validasi form, pastikan pengguna login (`ensureLoggedIn`),
-/// lalu kirim `POST /api/v1/skills/` dengan token dari `AuthState`.
+/// lalu kirim permintaan dengan token dari `AuthState`:
 ///
-/// - Berhasil (201): dialog konfirmasi dengan pilihan **Tambah Lagi** atau
-///   **Lihat Daftar**. Daftar dimuat ulang dari server, jadi skill baru
-///   langsung tampil di sana.
-/// - 401 (token dicabut atau tidak berlaku): sesi lokal dihapus dan pengguna
-///   diminta login ulang; isian form tetap ada.
-/// - Galat lain (403 bukan pemilik, 400 validasi server, jaringan): SnackBar.
+/// - **Tambah** ([skill] kosong): `POST /api/v1/skills/`. Berhasil (201):
+///   dialog konfirmasi dengan pilihan **Tambah Lagi** atau **Lihat Daftar**.
+///   Daftar dimuat ulang dari server, jadi skill baru langsung tampil di sana.
+/// - **Ubah** ([skill] diisi): `PATCH /api/v1/skills/<id>/`. Kolom terisi data
+///   skill itu, dan berhasil berarti halaman ditutup dengan mengembalikan
+///   [Skill] hasil server ke pemanggilnya.
+///
+/// Pada keduanya, 401 (token dicabut atau tidak berlaku) menghapus sesi lokal
+/// dan meminta login ulang dengan isian tetap ada; galat lain (403 bukan
+/// pemilik, 400 validasi server, jaringan) tampil di SnackBar.
 ///
 /// Kolom mengikuti `SkillSerializer` di Django: name, icon_url, dan category.
 class SkillFormPage extends StatefulWidget {
-  const SkillFormPage({super.key});
+  const SkillFormPage({super.key, this.skill});
+
+  /// Skill yang diubah; `null` berarti form membuat skill baru.
+  final Skill? skill;
 
   @override
   State<SkillFormPage> createState() => _SkillFormPageState();
@@ -38,11 +45,19 @@ class _SkillFormPageState extends State<SkillFormPage> {
   // Kunci untuk mengakses state Form (validasi dan reset).
   final _formKey = GlobalKey<FormState>();
 
-  final _nameController = TextEditingController();
-  final _iconUrlController = TextEditingController();
-  final _categoryController = TextEditingController();
+  // Pada mode ubah, kolom terisi data skill. `reset()` hanya dipakai pada mode
+  // tambah, jadi nilai awal ini tidak ikut terhapus.
+  late final _nameController = TextEditingController(text: widget.skill?.name);
+  late final _iconUrlController = TextEditingController(
+    text: widget.skill?.iconUrl,
+  );
+  late final _categoryController = TextEditingController(
+    text: widget.skill?.category,
+  );
 
   bool _isSubmitting = false;
+
+  bool get _isEditing => widget.skill != null;
 
   @override
   void dispose() {
@@ -55,6 +70,8 @@ class _SkillFormPageState extends State<SkillFormPage> {
   /// Menyusun [Skill] dari isian saat ini (hanya dipanggil setelah validasi).
   Skill _buildSkill() {
     return Skill(
+      // id hanya ada pada mode ubah; ia menentukan alamat PATCH, bukan isi body.
+      id: widget.skill?.id,
       name: _nameController.text.trim(),
       iconUrl: _iconUrlController.text.trim(),
       category: _categoryController.text.trim(),
@@ -83,10 +100,13 @@ class _SkillFormPageState extends State<SkillFormPage> {
 
     setState(() => _isSubmitting = true);
 
-    Skill? created;
+    Skill? saved;
     ApiException? failure;
     try {
-      created = await api.createSkill(_buildSkill(), token: token);
+      final skill = _buildSkill();
+      saved = _isEditing
+          ? await api.updateSkill(skill, token: token)
+          : await api.createSkill(skill, token: token);
     } on ApiException catch (error) {
       failure = error;
     } finally {
@@ -100,8 +120,13 @@ class _SkillFormPageState extends State<SkillFormPage> {
     if (!mounted) {
       return;
     }
-    if (created != null) {
-      await _showCreatedDialog(created);
+    if (saved != null) {
+      if (_isEditing) {
+        // Pemanggil (layar detail) yang memberi kabar dan memuat ulang daftar.
+        Navigator.pop(context, saved);
+      } else {
+        await _showCreatedDialog(saved);
+      }
     } else if (failure != null) {
       // Pada 401 sesi dihapus dan login diminta ulang; isian form tetap ada.
       await handleApiFailure(
@@ -161,8 +186,14 @@ class _SkillFormPageState extends State<SkillFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Warna AppBar mengikuti AppBarTheme di MyApp.
-      appBar: AppBar(title: const Text('Add Skill Form')),
-      drawer: const LeftDrawer(selected: DrawerDestination.addSkill),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Skill Form' : 'Add Skill Form'),
+      ),
+      // Form ubah dibuka di atas layar detail; ia punya tombol kembali, bukan
+      // drawer, supaya pengguna tidak "pindah halaman" di tengah penyuntingan.
+      drawer: _isEditing
+          ? null
+          : const LeftDrawer(selected: DrawerDestination.addSkill),
       body: SafeArea(
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

@@ -50,6 +50,19 @@ class _SkillListPageState extends State<SkillListPage> {
     }
   }
 
+  /// Membuka detail [skill]. Detail menutup dirinya dengan `true` setelah skill
+  /// diubah atau dihapus, dan saat itu daftar dimuat ulang dari server.
+  Future<void> _openDetail(Skill skill) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute<bool>(builder: (_) => SkillDetailPage(skill: skill)),
+    );
+
+    if ((changed ?? false) && mounted) {
+      await _reload();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +99,10 @@ class _SkillListPageState extends State<SkillListPage> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(12),
               itemCount: skills.length,
-              itemBuilder: (context, index) => _SkillTile(skill: skills[index]),
+              itemBuilder: (context, index) => _SkillTile(
+                skill: skills[index],
+                onTap: () => _openDetail(skills[index]),
+              ),
             ),
           );
         },
@@ -95,11 +111,12 @@ class _SkillListPageState extends State<SkillListPage> {
   }
 }
 
-/// Satu baris skill; mengetuknya membuka [SkillDetailPage].
+/// Satu baris skill; [onTap] dipanggil saat baris diketuk.
 class _SkillTile extends StatelessWidget {
-  const _SkillTile({required this.skill});
+  const _SkillTile({required this.skill, required this.onTap});
 
   final Skill skill;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -134,12 +151,7 @@ class _SkillTile extends StatelessWidget {
                 Text('${skill.starCount}'),
               ],
             ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => SkillDetailPage(skill: skill),
-              ),
-            ),
+            onTap: onTap,
           ),
         ),
       ),
