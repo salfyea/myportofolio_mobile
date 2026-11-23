@@ -4,6 +4,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
@@ -20,6 +21,14 @@ http.Response jsonResponse(Object body, {int status = 200}) =>
 /// [ApiClient] yang semua permintaannya dijawab oleh [handler].
 ApiClient fakeApiClient(MockClientHandler handler) =>
     ApiClient(client: MockClient(handler), baseUrl: 'http://api.test');
+
+/// Layar 800x1400 agar seluruh form dan tombolnya terlihat tanpa menggulir.
+void useTallScreen(WidgetTester tester) {
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = const Size(800, 1400);
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
 
 /// Handler bawaan: daftar proyek kosong; endpoint lain tidak ditemukan.
 Future<http.Response> emptyBackend(http.Request request) async {
