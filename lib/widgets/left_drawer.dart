@@ -12,7 +12,14 @@ import 'package:provider/provider.dart';
 /// Setiap halaman memberi tahu drawer-nya halaman mana yang sedang aktif lewat
 /// [LeftDrawer.selected], sehingga satu drawer yang sama bisa dipakai di semua
 /// halaman sambil menandai posisi pengguna.
-enum DrawerDestination { home, projects, addProject, addExperience }
+enum DrawerDestination {
+  home,
+  projects,
+  addProject,
+  addExperience,
+  skills,
+  addSkill,
+}
 
 /// Drawer menu yang muncul dari sisi kiri layar untuk berpindah halaman.
 ///
