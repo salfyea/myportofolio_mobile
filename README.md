@@ -1,5 +1,7 @@
 # MyPortfolio Mobile
 
+[![CI](https://github.com/salfyea/myportofolio_mobile/actions/workflows/main.yaml/badge.svg)](https://github.com/salfyea/myportofolio_mobile/actions/workflows/main.yaml)
+
 Aplikasi mobile portofolio pribadi yang dibangun dengan **Flutter**. Aplikasi ini adalah klien mobile dari website portofolio Django saya ([myportofolio](https://github.com/salfyea/myportofolio)) dan dikembangkan bertahap mengikuti tutorial serta tugas mata kuliah **Pemrograman Berbasis Platform (CSGE602022)**, Semester Gasal 2026/2027.
 
 [Identitas](#identitas-diri) · [Tentang Proyek](#tentang-proyek) · [Perkembangan](#perkembangan-proyek) · [Menjalankan Proyek](#menjalankan-proyek) · [Refleksi Mingguan](#refleksi-mingguan) · [Penggunaan AI](#ai-disclosure)
@@ -25,10 +27,12 @@ Sejak Tugas 8, aplikasi punya dua halaman formulir yang bisa dibuka dari kartu a
 
 | Formulir | Isian | Aturan validasi |
 | --- | --- | --- |
-| **Add Project** (Tutorial 9) | Nama, deskripsi, kategori, teknologi, tautan | Nama dan deskripsi wajib (spasi saja ditolak), nama maks. 200 karakter, tautan opsional berformat `http(s)://` |
+| **Add Project** (Tutorial 9, terhubung ke API sejak Tutorial 10) | Nama, deskripsi, kategori, tautan, URL gambar | Nama dan deskripsi wajib (spasi saja ditolak), nama maks. 200 karakter, tautan dan URL gambar opsional berformat `http(s)://`. **Wajib login**; tersimpan ke Django lewat `POST /api/v1/projects/` |
 | **Add Experience** (Tugas 8) | Posisi, perusahaan, jenis pekerjaan, tanggal mulai, tanggal selesai atau "Masih berlangsung", deskripsi, tautan | Posisi, perusahaan, tanggal mulai, dan deskripsi wajib; tanggal mulai tidak boleh di masa depan; tanggal selesai tidak boleh sebelum tanggal mulai; batas panjang 100/100/1000/200 karakter; tautan opsional berformat `http(s)://` |
 
-Setelah semua isian lolos validasi, tombol **Simpan** menampilkan ringkasan dalam `AlertDialog`. Data belum disimpan ke database; penyimpanan ke backend Django adalah pekerjaan pekan berikutnya.
+Pada form **Experience**, setelah semua isian lolos validasi, tombol **Simpan** menampilkan ringkasan dalam `AlertDialog`; data Experience belum dikirim ke backend. Pada form **Project**, tombol **Save** mengirim data ke Django dengan token milik pengguna yang login (lihat [Backend dan Autentikasi](#backend-dan-autentikasi)).
+
+Sejak Tutorial 10, daftar proyek dibaca dari API (publik, tanpa login) pada layar **Projects**: indikator memuat, pesan galat dengan tombol **Retry**, pesan daftar kosong, tarik-untuk-muat-ulang, dan layar detail untuk satu proyek.
 
 **Fitur tambahan pada form Experience** (di luar yang diminta soal): date picker dengan validasi silang tanggal, sakelar *Masih berlangsung*, penghitung karakter deskripsi, gulir otomatis ke kolom pertama yang salah, tombol Reset, durasi pengalaman pada ringkasan, penanda halaman aktif pada drawer, dan Home di drawer yang tidak menumpuk halaman.
 
@@ -39,29 +43,52 @@ Setelah semua isian lolos validasi, tombol **Simpan** menampilkan ringkasan dala
 | **Flutter** (Material 3) | Kerangka kerja UI lintas platform |
 | **Dart** | Bahasa pemrograman aplikasi |
 | **Git & GitHub** | Riwayat versi, branch per fitur, dan penyimpanan repositori |
+| **http** | Pemanggilan REST API ke backend Django (`ApiClient`) |
+| **provider** | `MultiProvider` menyediakan `ApiClient` dan `AuthState` ke seluruh widget tree |
+| **json_serializable** + **build_runner** | Pembuatan kode serialisasi JSON untuk model `Project` (`*.g.dart`, tidak di-commit) |
+| **GitHub Actions** + **very_good_workflows** | CI (format, analyze, test) dan build APK release |
 
 ### Struktur Kode
 
 ```text
 lib/
-├── main.dart                        # Titik masuk: main(), MyApp (MaterialApp + tema + AppBarTheme)
+├── main.dart                        # Titik masuk: MyApp (MaterialApp + tema + MultiProvider)
+├── config.dart                      # apiBaseUrl (dapat ditimpa lewat --dart-define=API_BASE_URL)
 ├── models/
-│   └── experience.dart              # Experience, EmploymentType (data murni, tanpa UI)
+│   ├── experience.dart              # Experience, EmploymentType (data murni, tanpa UI)
+│   └── project.dart                 # Project (@JsonSerializable; project.g.dart dibuat build_runner)
+├── services/                        # Logika jaringan dan sesi, tanpa UI
+│   ├── api_client.dart              # ApiClient + ApiException (GET/POST proyek, token login, logout)
+│   └── auth_state.dart              # AuthState (ChangeNotifier): token di memori, login, logout
 ├── screens/                         # Satu berkas = satu halaman penuh
 │   ├── menu.dart                    # MyHomePage, InfoCard, ItemHomepage
-│   ├── project_form.dart            # ProjectFormPage (form tambah proyek)
+│   ├── login_screen.dart            # LoginScreen (username + password -> token)
+│   ├── project_list.dart            # ProjectListPage (FutureBuilder + RefreshIndicator)
+│   ├── project_detail.dart          # ProjectDetailPage (seluruh field satu proyek)
+│   ├── project_form.dart            # ProjectFormPage (form tambah proyek, POST terautentikasi)
 │   └── experience_form.dart         # ExperienceFormPage (form tambah experience)
 ├── utils/                           # Logika murni, tanpa widget (mudah diuji)
 │   ├── validators.dart              # validateRequired, validateOptionalUrl, validateEndDate, ...
 │   └── formatters.dart              # formatDate, formatDuration
 └── widgets/                         # Komponen yang dipakai ulang antarhalaman
-    ├── left_drawer.dart             # LeftDrawer + DrawerDestination (navigasi + penanda halaman aktif)
+    ├── auth_guard.dart              # ensureLoggedIn(context): minta login sebelum aksi terlindungi
+    ├── left_drawer.dart             # LeftDrawer + DrawerDestination (navigasi, penanda aktif, Login/Logout)
     ├── project_card.dart            # ItemCard (kartu aksi di halaman utama)
     ├── app_text_form_field.dart     # AppTextFormField (kolom teks seragam)
     ├── date_form_field.dart         # DateFormField (FormField<DateTime> + showDatePicker)
     └── experience_summary_dialog.dart  # ExperienceSummaryDialog (ringkasan setelah Simpan)
+.github/workflows/
+└── main.yaml                        # CI (very_good_workflows) + build APK release sebagai artefak
 test/
-├── widget_test.dart                 # Halaman menu, form proyek, drawer
+├── support/test_app.dart            # Alat bantu: aplikasi dengan backend palsu (MockClient), tanpa jaringan
+├── widget_test.dart                 # Halaman menu: kartu, warna, SnackBar, Login/Logout
+├── api_client_test.dart             # ApiClient: header, body, pemetaan galat (MockClient)
+├── project_model_test.dart          # Pemetaan JSON snake_case, nilai bawaan, field baca-saja
+├── auth_test.dart                   # AuthState, LoginScreen, ensureLoggedIn
+├── auth_navigation_test.dart        # Kartu dan drawer yang dijaga login
+├── project_list_test.dart           # Memuat, galat + Retry, kosong, tarik-muat-ulang, buka detail
+├── project_detail_test.dart         # Detail: field, gambar, bagian kosong
+├── project_form_test.dart           # Form proyek: validasi, POST bertoken, 403/400/401/jaringan
 ├── experience_form_test.dart        # Form Experience: validasi, dialog, reset, layar ponsel + keyboard
 ├── navigation_test.dart             # Kartu, drawer, Back sistem, tumpukan halaman
 ├── form_widgets_test.dart           # AppTextFormField dan DateFormField
@@ -94,6 +121,7 @@ docs/
 | **Tugas 7** | Atribut `color` pada `ItemHomepage` agar tiap tombol berwarna unik tanpa percabangan if-else, enam tombol yang mengikuti bagian portofolio Django, halaman yang dapat di-scroll dengan `childAspectRatio` kartu, perbaikan overflow `InfoCard` di layar sempit, docstring, dan widget test baru. |
 | **Tutorial 9** | Drawer menu (`LeftDrawer`), navigasi `push`/`pushReplacement`/`pop`, form tambah proyek (`Form`, `TextFormField`, `DropdownButtonFormField`, validasi), pop-up `AlertDialog` berisi data isian, migrasi impor ke `material_ui`, dan refactoring ke direktori `screens/` dan `widgets/`. |
 | **Tugas 8** | Form **Add Experience** (`Form`, `GlobalKey<FormState>`, `DropdownButtonFormField`, `showDatePicker`, `SwitchListTile`) dengan validator murni di `utils/`, dialog ringkasan, kartu aksi dan opsi drawer baru, pemusatan warna AppBar di `AppBarTheme`, penanda halaman aktif di drawer, perbaikan tumpukan halaman Home, serta 65 test otomatis. |
+| **Tutorial 10** | Integrasi backend Django REST Framework: autentikasi token (`/api/v1/auth/token/`, `/api/v1/auth/logout/`) dan CORS di Django, model `@JsonSerializable`, `ApiClient` + `ApiException`, daftar dan detail proyek dengan `FutureBuilder` + `RefreshIndicator`, `AuthState` + `MultiProvider`, `LoginScreen` + `ensureLoggedIn`, form proyek terautentikasi dengan penanganan 401, serta CI/CD GitHub Actions (`very_good_workflows` + artefak APK). |
 | **Tugas berikutnya** | Akan ditambahkan pada bagian ini. |
 
 ---
@@ -110,16 +138,38 @@ cd myportofolio_mobile
 # 2. Unduh dependensi
 flutter pub get
 
-# 3. Jalankan di Chrome (paling ringan) atau di emulator/perangkat
-flutter run -d chrome
+# 3. Buat berkas hasil generasi (project.g.dart). Berkas *.g.dart sengaja tidak
+#    di-commit, jadi langkah ini wajib setelah clone dan setiap model berubah.
+dart run build_runner build --delete-conflicting-outputs
+
+# 4. Jalankan (lihat "Backend dan Autentikasi" untuk memilih API_BASE_URL)
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
+# Emulator Android (bawaan: http://10.0.2.2:8000 = PC host)
 # flutter run
 
-# 4. Analisis statis dan test
+# 5. Pemeriksaan yang sama dengan CI
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
 ```
 
 Saat aplikasi berjalan, tekan `r` di terminal untuk hot reload dan `R` untuk hot restart.
+
+### Backend dan Autentikasi
+
+Aplikasi ini adalah klien dari backend Django REST Framework di repositori [salfyea/myportofolio](https://github.com/salfyea/myportofolio) (di-deploy di `https://salwa-alifia-myportofolio.pws.cs.ui.ac.id`). Alamat backend ditentukan saat build lewat `--dart-define=API_BASE_URL=...` (lihat `lib/config.dart`):
+
+| Target | Perintah |
+| --- | --- |
+| Emulator Android + Django lokal | `flutter run` (bawaan `http://10.0.2.2:8000`) |
+| Chrome + Django lokal | `flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000` |
+| Backend yang sudah di-deploy | `flutter run -d chrome --dart-define=API_BASE_URL=https://salwa-alifia-myportofolio.pws.cs.ui.ac.id` |
+
+Menjalankan Django lokal (di repositori backend, branch dengan token auth): `pip install -r requirements.txt`, `python manage.py migrate`, `python manage.py createsuperuser`, lalu `python manage.py runserver`.
+
+Hak akses sengaja dipisah: **membaca** (`GET /api/v1/projects/`) publik, sedangkan **menulis** memerlukan `Authorization: Token <key>`. Token didapat dari `POST /api/v1/auth/token/` (username + password akun Django) dan dicabut oleh `POST /api/v1/auth/logout/`. Token hanya disimpan di memori, jadi menutup aplikasi sama dengan logout. Hanya superuser (pemilik portofolio) yang boleh menambah proyek; akun biasa mendapat 403. Jika token dicabut di server (mis. lewat Django Admin), pengiriman form berikutnya menerima 401: sesi lokal dihapus dan aplikasi meminta login ulang.
+
+APK release dibuat oleh GitHub Actions dengan `API_BASE_URL` mengarah ke backend yang di-deploy, dan dapat diunduh dari artefak `app-release-apk` pada tab **Actions**.
 
 ### Menguji Form Experience Secara Manual
 
@@ -132,7 +182,7 @@ Saat aplikasi berjalan, tekan `r` di terminal untuk hot reload dan `R` untuk hot
 7. Buka drawer lalu tekan **Home**. Halaman utama tampil, dan tombol Back sistem tidak lagi menampilkan halaman utama kedua.
 8. Ulangi langkah 2 dan 6 pada lebar jendela ponsel (sekitar 360 px) untuk memastikan tombol **Simpan** tetap terjangkau.
 
-Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (65 test).
+Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (145 test sejak Tutorial 10).
 
 ### Hasil Uji Manual di Chrome (23 November 2026)
 
