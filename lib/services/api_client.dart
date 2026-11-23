@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:myportofolio_mobile/config.dart';
 import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/models/skill.dart';
 
 /// Galat dari pemanggilan API.
 ///
@@ -104,41 +105,73 @@ class ApiClient {
   };
 
   /// Mengambil semua proyek. Publik, tidak perlu login.
-  Future<List<Project>> getProjects() async {
-    final response = await _send(
-      () => _client.get(
-        _uri('/api/v1/projects/'),
-        headers: const {'Accept': 'application/json'},
-      ),
-    );
-
-    final decoded = _decodeJson(response);
-    if (decoded is! List<dynamic>) throw _unreadable(response.statusCode);
-    return [
-      for (final item in decoded)
-        Project.fromJson(item as Map<String, dynamic>),
-    ];
-  }
+  Future<List<Project>> getProjects() =>
+      _getList('/api/v1/projects/', Project.fromJson);
 
   /// Membuat proyek baru. Hanya pemilik portofolio (superuser) yang diizinkan,
   /// dan permintaan wajib membawa [token] hasil [obtainToken].
-  Future<Project> createProject(
-    Project project, {
-    required String token,
-  }) async {
-    final response = await _send(
-      () => _client.post(
-        _uri('/api/v1/projects/'),
+  Future<Project> createProject(Project project, {required String token}) =>
+      _sendObject(
+        () => _client.post(
+          _uri('/api/v1/projects/'),
+          headers: _jsonHeaders(token: token),
+          body: jsonEncode(project.toJson()),
+        ),
+        Project.fromJson,
+      );
+
+  /// Mengambil semua skill. Publik, tidak perlu login.
+  Future<List<Skill>> getSkills() =>
+      _getList('/api/v1/skills/', Skill.fromJson);
+
+  /// Membuat skill baru (`POST /api/v1/skills/`). Hanya pemilik portofolio
+  /// yang diizinkan, dan permintaan wajib membawa [token] hasil [obtainToken].
+  Future<Skill> createSkill(Skill skill, {required String token}) =>
+      _sendObject(
+        () => _client.post(
+          _uri('/api/v1/skills/'),
+          headers: _jsonHeaders(token: token),
+          body: jsonEncode(skill.toJson()),
+        ),
+        Skill.fromJson,
+      );
+
+  /// Mengubah skill yang sudah ada (`PATCH /api/v1/skills/<id>/`).
+  ///
+  /// [skill] harus berasal dari server (punya `id`). Hanya pemilik atau Editor
+  /// yang diizinkan; akun lain mendapat 403.
+  Future<Skill> updateSkill(Skill skill, {required String token}) async {
+    final id = skill.id;
+    if (id == null) {
+      throw ArgumentError.value(
+        skill,
+        'skill',
+        'Skill yang diubah harus sudah punya id dari server.',
+      );
+    }
+
+    return await _sendObject(
+      () => _client.patch(
+        _uri('/api/v1/skills/${Uri.encodeComponent(id)}/'),
         headers: _jsonHeaders(token: token),
-        body: jsonEncode(project.toJson()),
+        body: jsonEncode(skill.toJson()),
+      ),
+      Skill.fromJson,
+    );
+  }
+
+  /// Menghapus skill ber-[id] (`DELETE /api/v1/skills/<id>/`, 204 No Content).
+  /// Hanya pemilik portofolio yang diizinkan.
+  Future<void> deleteSkill(String id, {required String token}) async {
+    await _send(
+      () => _client.delete(
+        _uri('/api/v1/skills/${Uri.encodeComponent(id)}/'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Token $token',
+        },
       ),
     );
-
-    final decoded = _decodeJson(response);
-    if (decoded is! Map<String, dynamic>) {
-      throw _unreadable(response.statusCode);
-    }
-    return Project.fromJson(decoded);
   }
 
   /// Menukar [username] dan [password] menjadi token API.
@@ -174,6 +207,38 @@ class ApiClient {
         headers: _jsonHeaders(token: token),
       ),
     );
+  }
+
+  /// GET publik ke [path] yang menjawab daftar objek, dipetakan lewat [fromJson].
+  Future<List<T>> _getList<T>(
+    String path,
+    T Function(Map<String, dynamic> json) fromJson,
+  ) async {
+    final response = await _send(
+      () => _client.get(
+        _uri(path),
+        headers: const {'Accept': 'application/json'},
+      ),
+    );
+
+    final decoded = _decodeJson(response);
+    if (decoded is! List<dynamic>) throw _unreadable(response.statusCode);
+    return [for (final item in decoded) fromJson(item as Map<String, dynamic>)];
+  }
+
+  /// Menjalankan [request] yang menjawab satu objek JSON, dipetakan lewat
+  /// [fromJson].
+  Future<T> _sendObject<T>(
+    Future<http.Response> Function() request,
+    T Function(Map<String, dynamic> json) fromJson,
+  ) async {
+    final response = await _send(request);
+
+    final decoded = _decodeJson(response);
+    if (decoded is! Map<String, dynamic>) {
+      throw _unreadable(response.statusCode);
+    }
+    return fromJson(decoded);
   }
 
   /// Menjalankan [request], mengubah kegagalan jaringan dan respons non-2xx

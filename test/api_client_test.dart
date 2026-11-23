@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/models/skill.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
 
 const _base = 'http://api.test';
@@ -18,6 +19,16 @@ const _projectJson = <String, dynamic>{
   'link': 'https://example.com/',
   'project_image_url': '',
   'star_count': 2,
+  'is_starred': false,
+  'starred_by_names': 'owner',
+};
+
+const _skillJson = <String, dynamic>{
+  'id': 's-1',
+  'name': 'Flutter',
+  'icon_url': 'https://example.com/flutter.png',
+  'category': 'Framework',
+  'star_count': 1,
   'is_starred': false,
   'starred_by_names': 'owner',
 };
@@ -207,6 +218,262 @@ void main() {
       expect(error.statusCode, 400);
       expect(error.message, contains('title: This field may not be blank.'));
       expect(error.message, contains('link: Enter a valid URL.'));
+    });
+  });
+
+  group('getSkills', () {
+    test('GET publik ke /api/v1/skills/ tanpa header Authorization', () async {
+      late http.Request seen;
+      final client = _clientWith((request) async {
+        seen = request;
+        return _ok([_skillJson]);
+      });
+
+      final skills = await client.getSkills();
+
+      expect(seen.method, 'GET');
+      expect(seen.url.toString(), '$_base/api/v1/skills/');
+      expect(seen.headers['Accept'], 'application/json');
+      expect(seen.headers.containsKey('Authorization'), isFalse);
+      expect(skills.single.name, 'Flutter');
+      expect(skills.single.iconUrl, 'https://example.com/flutter.png');
+      expect(skills.single.starCount, 1);
+    });
+
+    test('daftar kosong menghasilkan list kosong, bukan galat', () async {
+      final client = _clientWith((_) async => _ok(<Object>[]));
+
+      expect(await client.getSkills(), isEmpty);
+    });
+
+    test('respons non-2xx melempar ApiException, bukan null', () async {
+      final client = _clientWith(
+        (_) async => _ok({'detail': 'Server sibuk.'}, status: 503),
+      );
+
+      final error = await _failureOf(client.getSkills);
+
+      expect(error.statusCode, 503);
+      expect(error.message, 'Server sibuk.');
+    });
+
+    test('objek tunggal alih-alih daftar dianggap tidak terbaca', () async {
+      final client = _clientWith((_) async => _ok(_skillJson));
+
+      final error = await _failureOf(client.getSkills);
+
+      expect(error.message, 'Respons server tidak dapat dibaca.');
+    });
+  });
+
+  group('createSkill', () {
+    const draft = Skill(
+      name: 'Dart',
+      iconUrl: 'https://example.com/dart.png',
+      category: 'Language',
+    );
+
+    test('POST membawa token, JSON snake_case, dan tanpa id', () async {
+      late http.Request seen;
+      final client = _clientWith((request) async {
+        seen = request;
+        return _ok({
+          ..._skillJson,
+          'id': 'server-id',
+          'name': 'Dart',
+        }, status: 201);
+      });
+
+      final created = await client.createSkill(draft, token: 'abc123');
+
+      expect(seen.method, 'POST');
+      expect(seen.url.toString(), '$_base/api/v1/skills/');
+      expect(seen.headers['Authorization'], 'Token abc123');
+      expect(seen.headers['Content-Type'], contains('application/json'));
+      expect(jsonDecode(seen.body), {
+        'name': 'Dart',
+        'icon_url': 'https://example.com/dart.png',
+        'category': 'Language',
+      });
+      expect(created.id, 'server-id');
+    });
+
+    test('403 (bukan pemilik) membawa pesan dari DRF', () async {
+      final client = _clientWith(
+        (_) async => _ok({
+          'detail': 'Hanya pemilik portofolio yang dapat menambah data.',
+        }, status: 403),
+      );
+
+      final error = await _failureOf(
+        () => client.createSkill(draft, token: 't'),
+      );
+
+      expect(error.statusCode, 403);
+      expect(error.isUnauthorized, isFalse);
+      expect(error.message, contains('pemilik portofolio'));
+    });
+
+    test('token yang dicabut menghasilkan 401 yang dikenali', () async {
+      final client = _clientWith(
+        (_) async => _ok({'detail': 'Invalid token.'}, status: 401),
+      );
+
+      final error = await _failureOf(
+        () => client.createSkill(draft, token: 'revoked'),
+      );
+
+      expect(error.isUnauthorized, isTrue);
+    });
+
+    test('galat validasi per field digabung menjadi pesan terbaca', () async {
+      final client = _clientWith(
+        (_) async => _ok({
+          'icon_url': ['URL icon tidak valid.'],
+        }, status: 400),
+      );
+
+      final error = await _failureOf(
+        () => client.createSkill(draft, token: 't'),
+      );
+
+      expect(error.statusCode, 400);
+      expect(error.message, 'icon_url: URL icon tidak valid.');
+    });
+  });
+
+  group('updateSkill (PATCH)', () {
+    const edited = Skill(
+      id: 's-1',
+      name: 'Flutter 3',
+      iconUrl: 'https://example.com/flutter.png',
+      category: 'Framework',
+    );
+
+    test(
+      'PATCH ke /api/v1/skills/<id>/ membawa token dan field tulis',
+      () async {
+        late http.Request seen;
+        final client = _clientWith((request) async {
+          seen = request;
+          return _ok({..._skillJson, 'name': 'Flutter 3'});
+        });
+
+        final updated = await client.updateSkill(edited, token: 'abc123');
+
+        expect(seen.method, 'PATCH');
+        expect(seen.url.toString(), '$_base/api/v1/skills/s-1/');
+        expect(seen.headers['Authorization'], 'Token abc123');
+        expect(jsonDecode(seen.body), {
+          'name': 'Flutter 3',
+          'icon_url': 'https://example.com/flutter.png',
+          'category': 'Framework',
+        });
+        expect(updated.name, 'Flutter 3');
+      },
+    );
+
+    test('skill tanpa id ditolak sebelum ada permintaan', () async {
+      var requests = 0;
+      final client = _clientWith((_) async {
+        requests++;
+        return _ok(_skillJson);
+      });
+
+      await expectLater(
+        client.updateSkill(
+          const Skill(name: 'Baru', iconUrl: 'https://x.test/a.png'),
+          token: 't',
+        ),
+        throwsArgumentError,
+      );
+      expect(requests, 0);
+    });
+
+    test('404 (skill sudah dihapus) menjadi ApiException', () async {
+      final client = _clientWith(
+        (_) async => _ok({'detail': 'Not found.'}, status: 404),
+      );
+
+      final error = await _failureOf(
+        () => client.updateSkill(edited, token: 't'),
+      );
+
+      expect(error.statusCode, 404);
+    });
+
+    test('401 dikenali agar layar bisa meminta login ulang', () async {
+      final client = _clientWith(
+        (_) async => _ok({'detail': 'Invalid token.'}, status: 401),
+      );
+
+      final error = await _failureOf(
+        () => client.updateSkill(edited, token: 'revoked'),
+      );
+
+      expect(error.isUnauthorized, isTrue);
+    });
+  });
+
+  group('deleteSkill (DELETE)', () {
+    test(
+      'DELETE ke /api/v1/skills/<id>/ membawa token dan menerima 204',
+      () async {
+        late http.Request seen;
+        final client = _clientWith((request) async {
+          seen = request;
+          return http.Response('', 204);
+        });
+
+        await client.deleteSkill('s-1', token: 'abc123');
+
+        expect(seen.method, 'DELETE');
+        expect(seen.url.toString(), '$_base/api/v1/skills/s-1/');
+        expect(seen.headers['Authorization'], 'Token abc123');
+        expect(seen.body, isEmpty);
+      },
+    );
+
+    test(
+      '403 (hanya pemilik yang boleh menghapus) menjadi ApiException',
+      () async {
+        final client = _clientWith(
+          (_) async => _ok({
+            'detail': 'Hanya pemilik portofolio yang dapat menghapus data.',
+          }, status: 403),
+        );
+
+        final error = await _failureOf(
+          () => client.deleteSkill('s-1', token: 't'),
+        );
+
+        expect(error.statusCode, 403);
+        expect(error.message, contains('menghapus'));
+      },
+    );
+
+    test('401 dikenali agar layar bisa meminta login ulang', () async {
+      final client = _clientWith(
+        (_) async => _ok({'detail': 'Invalid token.'}, status: 401),
+      );
+
+      final error = await _failureOf(
+        () => client.deleteSkill('s-1', token: 'revoked'),
+      );
+
+      expect(error.isUnauthorized, isTrue);
+    });
+
+    test('jaringan putus menjadi galat jaringan', () async {
+      final client = _clientWith(
+        (_) async => throw http.ClientException('Connection refused'),
+      );
+
+      final error = await _failureOf(
+        () => client.deleteSkill('s-1', token: 't'),
+      );
+
+      expect(error.statusCode, ApiException.networkErrorCode);
     });
   });
 
