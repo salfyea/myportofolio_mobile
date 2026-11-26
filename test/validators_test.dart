@@ -79,6 +79,56 @@ void main() {
     });
   });
 
+  group('validateRequiredUrl', () {
+    test('kosong atau hanya spasi ditolak sebagai wajib diisi', () {
+      expect(
+        validateRequiredUrl(null, 'URL ikon'),
+        'URL ikon tidak boleh kosong!',
+      );
+      expect(
+        validateRequiredUrl('', 'URL ikon'),
+        'URL ikon tidak boleh kosong!',
+      );
+      expect(
+        validateRequiredUrl('   ', 'URL ikon'),
+        'URL ikon tidak boleh kosong!',
+      );
+    });
+
+    test('URL http dan https yang valid diterima', () {
+      expect(validateRequiredUrl('https://x.com/a.png', 'URL ikon'), isNull);
+      expect(validateRequiredUrl('http://x.com/a.png', 'URL ikon'), isNull);
+      expect(
+        validateRequiredUrl('  https://x.com/a.png  ', 'URL ikon'),
+        isNull,
+      );
+    });
+
+    test('skema selain http(s), tanpa host, atau berspasi ditolak', () {
+      for (final bad in [
+        'abc',
+        'ftp://x.com/a.png',
+        'http://',
+        'https://x .com',
+      ]) {
+        expect(
+          validateRequiredUrl(bad, 'URL ikon'),
+          contains('URL ikon tidak valid'),
+          reason: bad,
+        );
+      }
+    });
+
+    test('URL yang melebihi batas panjang ditolak', () {
+      final tooLong = 'https://x.com/${'a' * 200}';
+
+      expect(
+        validateRequiredUrl(tooLong, 'URL ikon', maxLength: 200),
+        'URL ikon terlalu panjang (maksimal 200 karakter).',
+      );
+    });
+  });
+
   group('validateDateOrder', () {
     final start = DateTime(2026, 5, 10);
 

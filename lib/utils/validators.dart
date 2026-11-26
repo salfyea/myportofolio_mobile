@@ -70,6 +70,17 @@ String? validateOptionalUrl(String? value, String label, {int? maxLength}) {
   return null;
 }
 
+/// Memeriksa kolom URL yang **wajib** diisi.
+///
+/// Gabungan [validateRequired] (kosong atau hanya spasi ditolak) dan
+/// [validateOptionalUrl] (harus `http`/`https` dengan host, tanpa spasi, dalam
+/// batas [maxLength]). Dipakai, misalnya, untuk URL ikon skill yang wajib ada
+/// di Django.
+String? validateRequiredUrl(String? value, String label, {int? maxLength}) {
+  return validateRequired(value, label) ??
+      validateOptionalUrl(value, label, maxLength: maxLength);
+}
+
 /// Mewajibkan sebuah tanggal dipilih, dan (opsional) melarang tanggal di masa
 /// depan.
 ///

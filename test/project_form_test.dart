@@ -26,14 +26,6 @@ Map<String, dynamic> createdJson({String title = 'Burhanpedia'}) => {
   'starred_by_names': '',
 };
 
-/// Layar tinggi agar seluruh form dan tombol Save terlihat tanpa menggulir.
-void useTallScreen(WidgetTester tester) {
-  tester.view.devicePixelRatio = 1.0;
-  tester.view.physicalSize = const Size(800, 1400);
-  addTearDown(tester.view.resetPhysicalSize);
-  addTearDown(tester.view.resetDevicePixelRatio);
-}
-
 Finder field(String label) => find.widgetWithText(TextFormField, label);
 
 Future<void> fillValidForm(WidgetTester tester) async {
