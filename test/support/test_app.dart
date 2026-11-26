@@ -30,9 +30,10 @@ void useTallScreen(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-/// Handler bawaan: daftar proyek kosong; endpoint lain tidak ditemukan.
+/// Handler bawaan: daftar proyek dan skill kosong; endpoint lain tidak ditemukan.
 Future<http.Response> emptyBackend(http.Request request) async {
-  if (request.method == 'GET' && request.url.path == '/api/v1/projects/') {
+  const lists = {'/api/v1/projects/', '/api/v1/skills/'};
+  if (request.method == 'GET' && lists.contains(request.url.path)) {
     return jsonResponse(<Object>[]);
   }
   return jsonResponse({'detail': 'Data tidak ditemukan.'}, status: 404);

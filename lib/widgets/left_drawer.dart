@@ -3,6 +3,8 @@ import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/screens/skill_form.dart';
+import 'package:myportofolio_mobile/screens/skill_list.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:provider/provider.dart';
@@ -23,8 +25,8 @@ enum DrawerDestination {
 
 /// Drawer menu yang muncul dari sisi kiri layar untuk berpindah halaman.
 ///
-/// Komponen ini dipakai bersama oleh halaman utama, daftar proyek, dan setiap
-/// halaman formulir. Daftar pilihannya berbasis data (lihat `_entries`), jadi
+/// Komponen ini dipakai bersama oleh halaman utama, daftar proyek, daftar
+/// skill, dan setiap halaman formulir. Daftar pilihannya berbasis data (lihat `_entries`), jadi
 /// menambah halaman baru cukup dengan satu entri di sana.
 ///
 /// Pilihan yang menulis data (`requiresLogin`) meminta login lebih dulu lewat
@@ -66,6 +68,21 @@ class LeftDrawer extends StatelessWidget {
       icon: Icons.work_outline,
       selectedIcon: Icons.work,
       pageBuilder: (context) => const ExperienceFormPage(),
+    ),
+    _DrawerEntry(
+      destination: DrawerDestination.skills,
+      label: 'Skills',
+      icon: Icons.code_outlined,
+      selectedIcon: Icons.code,
+      pageBuilder: (context) => const SkillListPage(),
+    ),
+    _DrawerEntry(
+      destination: DrawerDestination.addSkill,
+      label: 'Add Skill',
+      icon: Icons.playlist_add_outlined,
+      selectedIcon: Icons.playlist_add,
+      pageBuilder: (context) => const SkillFormPage(),
+      requiresLogin: true,
     ),
   ];
 

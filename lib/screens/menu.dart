@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/screens/project_list.dart';
+import 'package:myportofolio_mobile/screens/skill_form.dart';
+import 'package:myportofolio_mobile/screens/skill_list.dart';
 import 'package:myportofolio_mobile/services/auth_state.dart';
 import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
@@ -38,7 +40,12 @@ class MyHomePage extends StatelessWidget {
       Colors.deepPurple.shade500,
       destination: (context) => const ProjectListPage(),
     ),
-    ItemHomepage("Lihat Skills", Icons.code, Colors.brown.shade600),
+    ItemHomepage(
+      "Lihat Skills",
+      Icons.code,
+      Colors.brown.shade600,
+      destination: (context) => const SkillListPage(),
+    ),
     ItemHomepage(
       "Tambah Proyek",
       Icons.add_circle,
@@ -52,7 +59,13 @@ class MyHomePage extends StatelessWidget {
       Colors.teal.shade700,
       destination: (context) => const ExperienceFormPage(),
     ),
-    ItemHomepage("Tambah Skill", Icons.playlist_add, Colors.orange.shade800),
+    ItemHomepage(
+      "Tambah Skill",
+      Icons.playlist_add,
+      Colors.orange.shade800,
+      destination: (context) => const SkillFormPage(),
+      requiresLogin: true,
+    ),
     if (isLoggedIn)
       ItemHomepage("Logout", Icons.logout, Colors.red.shade700, onTap: _logout)
     else
