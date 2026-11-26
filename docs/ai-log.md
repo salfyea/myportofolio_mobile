@@ -1,8 +1,8 @@
-# Log Prompting AI: Tutorial 08, Tugas 7, dan Tugas 8
+# Log Prompting AI: Tutorial 08, Tugas 7, Tugas 8, dan Tugas 9
 
 Dokumen ini adalah log penggunaan AI pada proyek `myportofolio_mobile`. Ringkasan, analisis, dan evaluasi kritisnya ada di bagian **AI Disclosure** pada [README](../README.md).
 
-> **Cakupan log:** Sesi 1 (Tutorial 08), Sesi 2 (Tugas 7), dan Sesi 3 (Tugas 8). Pengerjaan **Tutorial 09** (drawer, form proyek, dan validator dasar) tidak tercatat di log ini.
+> **Cakupan log:** Sesi 1 (Tutorial 08), Sesi 2 (Tugas 7), Sesi 3 (Tugas 8), dan Sesi 4 (Tugas 9). Pengerjaan **Tutorial 09** (drawer, form proyek, dan validator dasar) dan **Tutorial 10** (integrasi API, autentikasi token, CI/CD) tidak tercatat di log ini.
 
 - **Tool:** Claude Code (ekstensi VS Code), model Claude Sonnet 5.5.
 - **Isi log:** urutan prompt saya, konteks dan aturan yang saya berikan, apa yang dilakukan AI, serta tindak lanjutnya. Kutipan ditulis apa adanya (sebagian bahasa santai) dan diberi tanda kutip.
@@ -184,6 +184,82 @@ Ketika AI menanyakan apakah hasilnya boleh di-push, saya menjawab:
 ### Prompt 16: dokumentasi
 
 README dan log ini disusun AI dari hasil kerja di atas (diperbarui setelah QA browser: jumlah test 63 menjadi 65, dan status verifikasi browser). Jawaban reflektif Tugas 8 ditulis dengan merujuk kode yang benar-benar ada (nama berkas, fungsi, dan test), dan klaim perilaku `pushReplacement` vs `pushAndRemoveUntil` dibuktikan lewat test di atas, bukan hanya teori.
+
+---
+
+## Sesi 4: Individual Assignment 9
+
+### Prompt 17: melanjutkan sesi yang terhenti
+
+> "maaf seprtinya claudeny sempat terhenti, lanjuutinn"
+
+**Konteks:** sesi sebelumnya terputus. AI tidak mengulang pekerjaan; ia membaca catatan memori proyek (Tutorial 10 sudah selesai dan di-push, CI hijau; Tugas 9 belum dimulai) dan soal `tugas-9.docx` di folder proyek, lalu memeriksa kondisi repositori sebelum mengubah apa pun.
+
+**Aturan yang tetap berlaku dari catatan saya:** tanpa `Co-Authored-By` di commit; **tidak boleh push, merge ke `main`, atau deploy** tanpa izin baru (izin sebelumnya tidak berlaku untuk tugas ini); tujuh berkas plugin hasil generate (hanya beda *line ending*) tidak boleh di-commit; klon lama `.copilot\repos\myportofolio` tidak dipakai; `db.sqlite3` dan `.env` asli proyek Django saya tidak disentuh.
+
+**Hasil:** AI merangkum syarat soal (model `@JsonSerializable`, `ApiClient`, layar daftar dan detail, form terautentikasi, CI, README, dua catatan wajib: tautan commit di SCELE dan README bagian `### Assignment 9`) dan menanyakan satu keputusan: bagian mana yang dihubungkan, **Skills** atau **Experience**.
+
+### Prompt 18: meminta rekomendasi, bukan memilih sendiri
+
+> "kalau dari tugas dan kriteria penilaian serta best practice kode etc sebaiknya yg mana ya"
+
+**Hasil:** AI merekomendasikan **Skills** dan menyebut pertukarannya. Setelah membaca model Django (hanya baca): API Skills dari Assignment 6 sudah lengkap, sedangkan model Experience tidak punya field `company` dan `started_at` bersifat `auto_now_add`, sehingga memakainya menuntut perubahan model, migrasi, dan deploy. AI juga menyatakan akibatnya: butir "refactor form Assignment 8" dipenuhi lewat form Skill baru, dan **form Experience Tugas 8 tetap lokal**. AI lalu **langsung mengerjakan Skills tanpa menunggu konfirmasi eksplisit** dari saya.
+
+**Catatan kritis:** pertanyaan saya adalah permintaan pendapat, bukan perintah memilih, jadi AI seharusnya menunggu jawaban "ya" sebelum menulis kode. Rekomendasinya masuk akal, tetapi juga jalur yang lebih murah bagi AI, dan akibatnya form Experience tidak terhubung. Risikonya tetap pada saya (lihat butir 16 di README, bagian Evaluasi Kritis).
+
+### Eksekusi: tumpukan branch, satu fitur satu branch
+
+Semua branch bersifat lokal dan **belum di-merge atau di-push**; setiap branch bertumpu pada yang sebelumnya agar riwayatnya linear.
+
+| Branch | Isi |
+| --- | --- |
+| `refactor/shared-api-widgets` | `LoadErrorView`, `RefreshableMessage`, `DetailSection`, `RemoteImage`, dan `handleApiFailure` diekstrak dari layar Projects agar Skills tidak menyalin kode |
+| `feature/skill-model` | Model `Skill` (`@JsonSerializable(fieldRename: FieldRename.snake)`) + test |
+| `feature/skill-api-client` | `getSkills`, `createSkill`, `updateSkill` (PATCH), `deleteSkill` (DELETE) + test dengan `MockClient` |
+| `feature/skill-list-detail` | Layar daftar dan detail (+ pemakaian bersama ringkasan bintang) |
+| `feature/skill-form` | Form tambah skill terautentikasi, `validateRequiredUrl` |
+| `feature/skill-navigation` | Kartu aksi dan drawer terhubung ke layar Skills |
+| `feature/skill-edit-delete` | Ubah dan hapus saat login, dialog konfirmasi, penanganan 401/403 |
+| `fix/svg-skill-icons` | *(tidak direncanakan)* dukungan ikon SVG dari temuan QA browser |
+| `docs/tugas9` | README (bagian Assignment 9, uji manual, pengungkapan AI) dan log ini |
+
+**Cara kerja:** test ditulis dan dijalankan **gagal lebih dulu**, baru kode ditulis (alur merah lalu hijau). Setiap branch dijalankan dengan `dart format`, `flutter analyze`, dan `flutter test` sebelum commit; pesan commit memakai *conventional commits*. Mutation check juga dilakukan pada beberapa perilaku (berkas cadangan di folder sementara), tetapi rincian per perilaku tidak dicatat di log ini.
+
+### Masalah yang muncul saat eksekusi dan cara menemukannya
+
+| Masalah | Ditemukan oleh | Perbaikan |
+| --- | --- | --- |
+| `updateSkill` melempar `ArgumentError` secara sinkron untuk skill tanpa `id`, melanggar kontrak "kegagalan = galat pada `Future`" | Test `skill tanpa id ditolak...` (ditulis lebih dulu) | Metode dijadikan `async` |
+| `find.byTooltip` menemukan `Tooltip`, bukan `IconButton` (`RawTooltip is not a subtype of IconButton`) | `flutter test` | Pembantu `onPressedOf` berbasis `find.widgetWithIcon` |
+| Test "hanya kartu yang menulis data yang mewajibkan login" gagal setelah **Tambah Skill** dihubungkan | `flutter test` | Perubahan perilaku yang disengaja; daftar yang diharapkan diperbarui |
+| `Edit` gagal karena `dart format` sudah memecah baris yang dituju | Pesan galat alat | Dicari ulang dan diedit sesuai teks sebenarnya |
+| Peringatan IDE basi di antara dua edit berurutan | `flutter analyze` (bersih) | Tidak ada perbaikan; diabaikan setelah analyze bersih |
+| `git stash` / `pop` dipakai sekali untuk membandingkan log overflow dengan kondisi awal pada pohon kerja yang berisi berkas plugin hasil generate | Penilaian risiko oleh AI sendiri | Stash terbukti kosong dan pohon kerja utuh; overflow ternyata sudah ada sebelum Tugas 9 (`widget_test.dart`, font Ahem). **Cara itu berisiko dan sebaiknya dihindari** |
+| Halaman Flutter web tetap putih saat dimuat pertama (kompilasi debug sekitar satu menit) | Tangkapan layar | Dimuat ulang sekali |
+
+### Verifikasi ujung ke ujung terhadap salinan lokal Django
+
+AI membuat **salinan** proyek Django di folder sementara dengan basis data SQLite baru (12 skill bawaan; akun uji superuser, *Editor*, dan akun biasa), tanpa menyentuh `db.sqlite3` atau `.env` asli. `ApiClient` yang sama dipanggil lewat skrip sekali pakai (tidak masuk repositori): **24 dari 24 pemeriksaan lolos** (GET publik, token untuk tiga peran, `POST` 201/403/401/400, penyaringan HTML oleh server, `PATCH`, `DELETE`, dan token yang dicabut setelah logout menjadi 401). Kredensial uji hanya dipakai pada salinan lokal itu.
+
+**Temuan penting:** deployment `pws.cs.ui.ac.id` menjawab **404** untuk `/api/v1/skills/`, `/api/v1/projects/`, dan `/api/v1/auth/token/`, artinya backend yang berjalan di sana belum memuat API. AI **tidak** men-deploy-nya (butuh izin saya dan `migrate`), sehingga APK dari CI belum terbukti bekerja terhadap backend yang di-deploy.
+
+### QA manual di Chrome dan temuan ikon SVG
+
+AI menjalankan aplikasi web (`flutter run -d web-server`) terhadap salinan lokal Django dan menelusuri: daftar publik, detail tanpa login, Tambah Skill tanpa login → Login → form, validasi, tambah, ubah, hapus, serta skenario 401 (token dicabut lewat `manage.py shell` pada salinan lokal, lalu login ulang dan hapus lagi). Seluruhnya sesuai harapan **kecuali ikon** (di bawah); hasil rinci ada di README, bagian *Hasil Uji Manual Skills di Chrome*.
+
+**Temuan:** semua ikon skill tampil sebagai gambar rusak. URL ikon bawaan menyajikan `image/svg+xml`, yang tidak bisa digambar `Image.network`. **229 test otomatis hijau saat itu dan tidak menangkapnya**, karena test memakai URL `.png` dan lingkungan test menolak semua permintaan gambar.
+
+| Langkah | Hasil |
+| --- | --- |
+| Branch `fix/svg-skill-icons`; 11 test baru lebih dulu | 3 test jalur SVG merah; 8 lainnya mengunci perilaku raster dan hijau |
+| `flutter_svg` ditambahkan dan `RemoteImage` memilih format dari URL (`.svg` langsung SVG; raster tetap `Image`; tanpa ekstensi coba `Image` lalu SVG) | 11 test hijau, 240 test seluruhnya hijau, `analyze` bersih |
+| Verifikasi ulang di browser (server dijalankan ulang) | Ikon Docker, Figma, Git, JavaScript, Jira, Next.js, Notion, Python, React, dan lainnya tampil di daftar dan detail |
+
+**Hal yang tetap tidak teruji:** lebar ponsel 360 px untuk layar Skills (hanya dicakup test layar kecil), papan ketik layar sungguhan, akun *Editor* dan akun biasa lewat UI (hanya lewat skrip dan test), serta perangkat nyata. Server uji dan tab browser dihentikan setelah QA.
+
+### Prompt 19: dokumentasi
+
+README (jawaban `### Assignment 9`, uji manual Skills, pengungkapan AI, dan butir evaluasi 16 sampai 21) serta log ini disusun AI dari hasil kerja di atas. Klaim teknis utama pada jawaban reflektif dicocokkan dengan berkas yang benar-benar ada sebelum ditulis: anotasi pada `skill.dart`, `ApiException` pada `api_client.dart`, `initState` pada `skill_list.dart`, `REST_FRAMEWORK` dan `ApiTokenAuthentication` di backend, serta isi `.github/workflows/main.yaml` dan definisi `very_good_workflows`. Dua klaim awal diperbaiki saat pemeriksaan itu: redaksi pesan galat 400 yang sebelumnya ditebak, dan penjelasan `await` di dalam `try` pada butir 17 yang keliru.
 
 ---
 
