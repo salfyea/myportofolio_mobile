@@ -261,6 +261,10 @@ AI menjalankan aplikasi web (`flutter run -d web-server`) terhadap salinan lokal
 
 README (jawaban `### Assignment 9`, uji manual Skills, pengungkapan AI, dan butir evaluasi 16 sampai 21) serta log ini disusun AI dari hasil kerja di atas. Klaim teknis utama pada jawaban reflektif dicocokkan dengan berkas yang benar-benar ada sebelum ditulis: anotasi pada `skill.dart`, `ApiException` pada `api_client.dart`, `initState` pada `skill_list.dart`, `REST_FRAMEWORK` dan `ApiTokenAuthentication` di backend, serta isi `.github/workflows/main.yaml` dan definisi `very_good_workflows`. Dua klaim awal diperbaiki saat pemeriksaan itu: redaksi pesan galat 400 yang sebelumnya ditebak, dan penjelasan `await` di dalam `try` pada butir 17 yang keliru.
 
+### Lanjutan (26 November 2026): merge, deploy, dan uji terhadap deployment
+
+Atas izin saya, AI menggabungkan branch Tugas 9 ke `main`, push, memastikan CI hijau dengan artefak APK, lalu men-deploy backend Django (`76552ea`) ke PWS. Terhadap deployment diperiksa: `GET` 200, login salah 400, token palsu 401, CORS, daftar dan detail Skills (termasuk 360 px), serta gerbang login. Dua test lebar 360 px ditambahkan untuk daftar dan form Skill. Login dengan akun valid dan operasi tulis terhadap deployment belum diuji karena AI tidak memegang kredensial.
+
 ---
 
 ## Pola yang saya pakai
