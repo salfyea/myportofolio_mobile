@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/models/skill.dart';
 import 'package:myportofolio_mobile/screens/login_screen.dart';
 import 'package:myportofolio_mobile/screens/skill_form.dart';
 import 'package:myportofolio_mobile/screens/skill_list.dart';
@@ -294,6 +295,112 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(SkillFormPage), findsOneWidget);
       expect(find.text('Flutter'), findsOneWidget);
+    });
+  });
+
+  group('mode ubah (PATCH)', () {
+    const existing = Skill(
+      id: 's-1',
+      name: 'Flutter',
+      iconUrl: 'https://example.com/flutter.png',
+      category: 'Framework',
+    );
+
+    /// Membuka form ubah dari layar peluncur, supaya `Navigator.pop` punya rute
+    /// untuk kembali; hasil form dicatat di [result].
+    Future<AuthState> openEdit(
+      WidgetTester tester,
+      MockClientHandler handler,
+      List<Skill?> result,
+    ) async {
+      useTallScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          client: fakeApiClient(handler),
+          loggedInToken: 'tok',
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () async => result.add(
+                    await Navigator.push<Skill>(
+                      context,
+                      MaterialPageRoute<Skill>(
+                        builder: (_) => const SkillFormPage(skill: existing),
+                      ),
+                    ),
+                  ),
+                  child: const Text('Buka'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Buka'));
+      await tester.pumpAndSettle();
+      return tester.element(find.byType(SkillFormPage)).read<AuthState>();
+    }
+
+    testWidgets('Save mengirim PATCH lalu mengembalikan skill dari server', (
+      tester,
+    ) async {
+      late http.Request seen;
+      final result = <Skill?>[];
+      await openEdit(tester, (request) async {
+        seen = request;
+        return jsonResponse({...createdJson(name: 'Flutter 3'), 'id': 's-1'});
+      }, result);
+
+      await tester.enterText(field('Nama Skill'), 'Flutter 3');
+      await tapSave(tester);
+
+      expect(seen.method, 'PATCH');
+      expect(seen.url.path, '/api/v1/skills/s-1/');
+      expect(seen.headers['Authorization'], 'Token tok');
+      // Form tertutup dan pemanggil menerima data terbaru dari server.
+      expect(find.byType(SkillFormPage), findsNothing);
+      expect(result.single?.name, 'Flutter 3');
+      expect(result.single?.id, 's-1');
+    });
+
+    testWidgets('validasi tetap berlaku: nama kosong tidak dikirim', (
+      tester,
+    ) async {
+      var requests = 0;
+      await openEdit(tester, (_) async {
+        requests++;
+        return jsonResponse(createdJson());
+      }, []);
+
+      await tester.enterText(field('Nama Skill'), '   ');
+      await tapSave(tester);
+
+      expect(find.text('Nama skill tidak boleh kosong!'), findsOneWidget);
+      expect(requests, 0);
+      expect(find.byType(SkillFormPage), findsOneWidget);
+    });
+
+    testWidgets('401 menghapus sesi dan meminta login ulang', (tester) async {
+      final result = <Skill?>[];
+      final auth = await openEdit(
+        tester,
+        (_) async => jsonResponse({'detail': 'Invalid token.'}, status: 401),
+        result,
+      );
+
+      await tester.enterText(field('Nama Skill'), 'Flutter 3');
+      await tapSave(tester);
+
+      expect(auth.isLoggedIn, isFalse);
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      // Kembali ke form: perubahan belum hilang dan belum ada hasil.
+      expect(find.byType(SkillFormPage), findsOneWidget);
+      expect(find.text('Flutter 3'), findsOneWidget);
+      expect(result, isEmpty);
     });
   });
 
