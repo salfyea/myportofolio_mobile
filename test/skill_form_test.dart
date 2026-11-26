@@ -60,6 +60,30 @@ Future<AuthState> openForm(
 }
 
 void main() {
+  testWidgets('lebar 360 px: form dan pesan galat tidak meluap', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 640);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      testApp(
+        client: fakeApiClient((_) async => jsonResponse(createdJson())),
+        loggedInToken: 'tok',
+        home: const SkillFormPage(),
+      ),
+    );
+
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    // Kolom wajib kosong: pesan galat muncul dan tidak ada overflow.
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TextFormField), findsNWidgets(3));
+  });
+
   group('validasi', () {
     testWidgets('spasi saja dianggap kosong dan tidak ada permintaan', (
       tester,

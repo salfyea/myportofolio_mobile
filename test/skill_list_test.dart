@@ -92,6 +92,32 @@ void main() {
     expect(requests, 1);
   });
 
+  testWidgets('lebar 360 px: nama dan kategori panjang tidak meluap', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await openList(
+      tester,
+      (_) async => jsonResponse([
+        skillJson(
+          'Pemrograman Berorientasi Objek dan Arsitektur Perangkat Lunak',
+          stars: 1234,
+          category: 'Kategori yang sangat panjang sekali untuk layar sempit',
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    // Overflow di Flutter dilaporkan sebagai exception saat frame digambar.
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Pemrograman Berorientasi'), findsOneWidget);
+    expect(find.text('1234'), findsOneWidget);
+  });
+
   testWidgets('daftar publik: tidak mengirim header Authorization', (
     tester,
   ) async {
