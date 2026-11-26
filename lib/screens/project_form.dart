@@ -88,7 +88,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
     // memeriksa `mounted`.
     final api = context.read<ApiClient>();
     final auth = context.read<AuthState>();
-    final messenger = ScaffoldMessenger.of(context);
 
     // Token bisa saja sudah dihapus sejak form dibuka (logout dari drawer).
     if (!await ensureLoggedIn(context)) {
@@ -121,36 +120,12 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
     if (created != null) {
       await _showCreatedDialog(created);
     } else if (failure != null) {
-      await _handleFailure(failure, auth, messenger);
-    }
-  }
-
-  /// Menampilkan kegagalan. Pada 401 sesi dihapus dan login diminta ulang.
-  Future<void> _handleFailure(
-    ApiException error,
-    AuthState auth,
-    ScaffoldMessengerState messenger,
-  ) async {
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(error.message)));
-
-    if (!error.isUnauthorized) {
-      return;
-    }
-
-    // Token sudah ditolak server, jadi tidak ada yang perlu dicabut.
-    auth.clearSession();
-    if (await ensureLoggedIn(context) && mounted) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Login berhasil. Tekan Save sekali lagi untuk mengirim.',
-            ),
-          ),
-        );
+      // Pada 401 sesi dihapus dan login diminta ulang; isian form tetap ada.
+      await handleApiFailure(
+        context,
+        failure,
+        retryHint: 'Login berhasil. Tekan Save sekali lagi untuk mengirim.',
+      );
     }
   }
 

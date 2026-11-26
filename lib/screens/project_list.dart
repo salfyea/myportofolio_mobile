@@ -3,6 +3,8 @@ import 'package:myportofolio_mobile/models/project.dart';
 import 'package:myportofolio_mobile/screens/project_detail.dart';
 import 'package:myportofolio_mobile/services/api_client.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:myportofolio_mobile/widgets/load_error_view.dart';
+import 'package:myportofolio_mobile/widgets/refreshable_message.dart';
 import 'package:provider/provider.dart';
 
 /// Daftar proyek yang dibaca dari API Django (publik, tanpa login).
@@ -60,24 +62,20 @@ class _ProjectListPageState extends State<ProjectListPage> {
           }
 
           if (snapshot.hasError) {
-            return _ErrorView(error: snapshot.error!, onRetry: _reload);
+            return LoadErrorView(
+              subject: 'proyek',
+              error: snapshot.error!,
+              onRetry: _reload,
+            );
           }
 
           final projects = snapshot.data ?? const <Project>[];
 
           if (projects.isEmpty) {
             // Tetap bisa digulir agar tarik-untuk-muat-ulang berfungsi.
-            return RefreshIndicator(
+            return RefreshableMessage(
+              message: 'Belum ada proyek.',
               onRefresh: _reload,
-              child: LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: SizedBox(
-                    height: constraints.maxHeight,
-                    child: const Center(child: Text('Belum ada proyek.')),
-                  ),
-                ),
-              ),
             );
           }
 
@@ -144,39 +142,6 @@ class _ProjectTile extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Pesan galat dengan tombol Retry.
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.error, required this.onRetry});
-
-  final Object error;
-  final Future<void> Function() onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = error is ApiException
-        ? (error as ApiException).message
-        : 'Terjadi kesalahan tak terduga.';
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 12,
-          children: [
-            Text('Gagal memuat proyek: $message', textAlign: TextAlign.center),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
         ),
       ),
     );
