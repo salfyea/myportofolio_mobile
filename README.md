@@ -154,7 +154,7 @@ docs/
 | **Tutorial 9** | Drawer menu (`LeftDrawer`), navigasi `push`/`pushReplacement`/`pop`, form tambah proyek (`Form`, `TextFormField`, `DropdownButtonFormField`, validasi), pop-up `AlertDialog` berisi data isian, migrasi impor ke `material_ui`, dan refactoring ke direktori `screens/` dan `widgets/`. |
 | **Tugas 8** | Form **Add Experience** (`Form`, `GlobalKey<FormState>`, `DropdownButtonFormField`, `showDatePicker`, `SwitchListTile`) dengan validator murni di `utils/`, dialog ringkasan, kartu aksi dan opsi drawer baru, pemusatan warna AppBar di `AppBarTheme`, penanda halaman aktif di drawer, perbaikan tumpukan halaman Home, serta 65 test otomatis. |
 | **Tutorial 10** | Integrasi backend Django REST Framework: autentikasi token (`/api/v1/auth/token/`, `/api/v1/auth/logout/`) dan CORS di Django, model `@JsonSerializable`, `ApiClient` + `ApiException`, daftar dan detail proyek dengan `FutureBuilder` + `RefreshIndicator`, `AuthState` + `MultiProvider`, `LoginScreen` + `ensureLoggedIn`, form proyek terautentikasi dengan penanganan 401, serta CI/CD GitHub Actions (`very_good_workflows` + artefak APK). |
-| **Tugas 9** | Bagian **Skills** terhubung ke API: model `Skill` (`@JsonSerializable(fieldRename: FieldRename.snake)`), `ApiClient` untuk `GET`/`POST` publik-terautentikasi plus `PATCH`/`DELETE` bertoken, layar daftar, detail, dan form (tambah + ubah), kartu dan drawer yang sudah terhubung, `handleApiFailure` bersama untuk 401, ekstraksi widget bersama (`LoadErrorView`, `RemoteImage`, dll.) dari layar Projects, dukungan ikon SVG (`flutter_svg`) hasil temuan QA browser, serta 240 test otomatis. |
+| **Tugas 9** | Bagian **Skills** terhubung ke API: model `Skill` (`@JsonSerializable(fieldRename: FieldRename.snake)`), `ApiClient` untuk `GET`/`POST` publik-terautentikasi plus `PATCH`/`DELETE` bertoken, layar daftar, detail, dan form (tambah + ubah), kartu dan drawer yang sudah terhubung, `handleApiFailure` bersama untuk 401, ekstraksi widget bersama (`LoadErrorView`, `RemoteImage`, dll.) dari layar Projects, dukungan ikon SVG (`flutter_svg`) hasil temuan QA browser, serta 242 test otomatis. |
 | **Tugas berikutnya** | Akan ditambahkan pada bagian ini. |
 
 ---
@@ -212,7 +212,7 @@ Hak akses sengaja dipisah: **membaca** (`GET /api/v1/projects/` dan `GET /api/v1
 
 Akun lain yang sudah login mendapat 403; token yang tidak valid mendapat 401.
 
-**Status deployment.** Pengujian ujung ke ujung Tugas 9 dijalankan terhadap **salinan lokal** backend dengan basis data sementara, bukan terhadap `pws.cs.ui.ac.id`: pada 24 November 2026 deployment itu masih menjawab 404 untuk `/api/v1/skills/`, `/api/v1/projects/`, dan `/api/v1/auth/token/`, artinya versi backend yang berjalan di sana belum memuat API. APK dari CI memakai alamat deployment itu, jadi APK baru berfungsi penuh setelah backend di-deploy ulang dengan kode API-nya dan migrasi `authtoken` dijalankan.
+**Status deployment (26 November 2026).** Backend sudah di-deploy ulang ke `pws.cs.ui.ac.id` (commit Django `76552ea`), sehingga APK dari CI mengarah ke API yang aktif. Yang sudah diperiksa terhadap deployment tercantum di [Hasil Uji terhadap Deployment](#hasil-uji-terhadap-deployment-26-november-2026). Sebelumnya (24 November) deployment masih menjawab 404 untuk `/api/v1/*`, sehingga uji tulis (`POST`, `PATCH`, `DELETE`) di bawah dilakukan terhadap **salinan lokal** backend.
 
 APK release dibuat oleh GitHub Actions dengan `API_BASE_URL` mengarah ke backend yang di-deploy, dan dapat diunduh dari artefak `app-release-apk` pada tab **Actions**.
 
@@ -227,7 +227,7 @@ APK release dibuat oleh GitHub Actions dengan `API_BASE_URL` mengarah ke backend
 7. Buka drawer lalu tekan **Home**. Halaman utama tampil, dan tombol Back sistem tidak lagi menampilkan halaman utama kedua.
 8. Ulangi langkah 2 dan 6 pada lebar jendela ponsel (sekitar 360 px) untuk memastikan tombol **Simpan** tetap terjangkau.
 
-Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (240 test sejak Tugas 9).
+Pemeriksaan yang sama berjalan otomatis lewat `flutter test` (242 test sejak Tugas 9).
 
 ### Hasil Uji Manual di Chrome (23 November 2026)
 
@@ -282,9 +282,24 @@ Dijalankan oleh AI lewat ekstensi Chrome terhadap `flutter run -d web-server` (m
 
 **Catatan tentang cacat ikon:** 229 test otomatis saat itu hijau dan **tidak menangkapnya**, karena test memakai URL `.png` dan lingkungan test menolak semua permintaan gambar. Hanya melihat layar dengan data nyata yang menemukannya. Test regresi ditambahkan di `remote_image_test.dart` (11 test). Tiga di antaranya, yang menguji jalur SVG, terbukti merah sebelum perbaikan; delapan lainnya mengunci perilaku raster yang memang sudah benar agar tidak rusak oleh perbaikan itu.
 
-**Belum diuji di browser:** lebar ponsel 360 px untuk layar Skills (hanya dicakup test layar kecil), papan ketik layar sungguhan, akun *Editor* dan akun biasa lewat UI, serta perangkat Android/iOS nyata. Tombol hapus pada mode debug berada tepat di bawah pita "DEBUG" di pojok kanan atas; tetap bisa diketuk dan pita itu tidak ada pada build release.
+**Belum diuji di browser pada sesi ini:** lebar ponsel 360 px untuk layar Skills (daftar dan detail kemudian diuji pada 26 November, lihat di bawah), papan ketik layar sungguhan, akun *Editor* dan akun biasa lewat UI, serta perangkat Android/iOS nyata. Tombol hapus pada mode debug berada tepat di bawah pita "DEBUG" di pojok kanan atas; tetap bisa diketuk dan pita itu tidak ada pada build release.
 
 **Pengujian lapisan API (skrip, bukan UI).** Di luar browser, `ApiClient` yang sama dijalankan melawan salinan lokal Django yang sama lewat skrip sekali pakai (tidak masuk repositori), 24 pemeriksaan lolos: GET publik, login untuk tiga peran (superuser, *Editor*, akun biasa), `POST` (201; 403 untuk *Editor* dan akun biasa; 401 untuk token palsu; 400 untuk URL ikon tidak valid), penyaringan tag HTML oleh server, `PATCH` (superuser dan *Editor* boleh; akun biasa 403; id tidak ada 404), `DELETE` (superuser 204; *Editor* 403; ulang 404), serta token yang dicabut setelah logout menjadi 401.
+
+### Hasil Uji terhadap Deployment (26 November 2026)
+
+Dijalankan oleh AI setelah backend di-deploy ulang: pemeriksaan HTTP dengan `curl`, lalu `flutter run -d web-server` dengan `API_BASE_URL` ke `https://salwa-alifia-myportofolio.pws.cs.ui.ac.id` di Chrome. Lebar 360 × 640 px memakai iframe karena jendela browser tidak dapat dikecilkan.
+
+| Pemeriksaan | Hasil |
+| --- | --- |
+| `GET /api/v1/skills/` dan `/api/v1/projects/` | Lolos: 200 |
+| Login dengan kredensial salah | Lolos: 400 dengan pesan galat |
+| `POST /api/v1/skills/` tanpa token / dengan token palsu | Lolos: 403 / 401 |
+| Preflight CORS (`Authorization`, `PATCH`, `DELETE`) | Lolos |
+| Daftar dan detail skill beserta ikon SVG, lebar desktop dan 360 px | Lolos |
+| **Add Skill** tanpa login membuka layar Login | Lolos |
+
+**Belum diuji terhadap deployment:** login dengan akun yang valid serta `POST`, `PATCH`, dan `DELETE` yang berhasil (AI tidak memegang kredensial), form Add Skill 360 px di browser (dicakup `skill_form_test.dart`), dan APK pada perangkat Android nyata.
 
 ---
 
@@ -420,7 +435,7 @@ Dijalankan oleh AI lewat ekstensi Chrome terhadap `flutter run -d web-server` (m
 
 - **Bagian yang dipilih: Skills, bukan Experience.** Endpoint Skills di Django (Assignment 6) sudah lengkap, sedangkan model Experience di Django tidak cocok dengan form Tugas 8 (tidak ada field `company`, dan `started_at` bersifat `auto_now_add`), sehingga memakainya berarti mengubah model dan memigrasikan basis data produksi di luar lingkup tugas ini.
 - **Akibatnya, form Experience dari Tugas 8 tetap lokal dan belum terhubung ke API.** Butir "refactor form dari Assignment 8" dipenuhi dengan **form Skill baru** yang mengikuti pola yang sama (validasi, `GlobalKey<FormState>`, `ensureLoggedIn`, POST bertoken, penanganan `ApiException`), bukan dengan memodifikasi form Experience. Itu penafsiran saya atas soal; jika penilai mengharapkan form Experience yang berubah, butir itu belum terpenuhi persis seperti tertulis.
-- **Fitur di luar minimum:** `PATCH` (ubah) dan `DELETE` (hapus) bertoken beserta dialog konfirmasi dan penanganan 401/403, dukungan ikon SVG, serta 240 test otomatis termasuk `MockClient` untuk tiap jalur API.
+- **Fitur di luar minimum:** `PATCH` (ubah) dan `DELETE` (hapus) bertoken beserta dialog konfirmasi dan penanganan 401/403, dukungan ikon SVG, serta 242 test otomatis termasuk `MockClient` untuk tiap jalur API.
 
 ---
 
@@ -588,7 +603,7 @@ QA manual di Chrome dengan data nyata menunjukkan **setiap ikon skill tampil seb
 
 ### 20. Verifikasi ujung ke ujung tidak dilakukan terhadap deployment (Tugas 9)
 
-AI memeriksa deployment `pws.cs.ui.ac.id` dan mendapati `/api/v1/skills/`, `/api/v1/projects/`, dan `/api/v1/auth/token/` menjawab **404**: backend yang berjalan di sana belum memuat API. Karena itu uji ujung ke ujung (browser dan skrip 24 pemeriksaan) dijalankan terhadap **salinan lokal** Django dengan basis data sementara, dan README menyatakannya. Konsekuensinya, **belum ada bukti bahwa APK dari CI bekerja terhadap backend yang di-deploy**; untuk itu backend harus di-deploy ulang (termasuk migrasi `authtoken`), dan tindakan itu sengaja tidak dilakukan AI tanpa izin saya.
+AI memeriksa deployment `pws.cs.ui.ac.id` dan mendapati `/api/v1/skills/`, `/api/v1/projects/`, dan `/api/v1/auth/token/` menjawab **404**: backend yang berjalan di sana belum memuat API. Karena itu uji ujung ke ujung (browser dan skrip 24 pemeriksaan) dijalankan terhadap **salinan lokal** Django dengan basis data sementara, dan README menyatakannya. Konsekuensinya, **belum ada bukti bahwa APK dari CI bekerja terhadap backend yang di-deploy**; untuk itu backend harus di-deploy ulang (termasuk migrasi `authtoken`), dan tindakan itu sengaja tidak dilakukan AI tanpa izin saya. **Tindak lanjut 26 November:** setelah saya izinkan, backend di-deploy ulang dan jalur baca serta penolakan akses diperiksa terhadap deployment (lihat [hasilnya](#hasil-uji-terhadap-deployment-26-november-2026)).
 
 ### 21. Perintah git yang berisiko dipakai pada pohon kerja yang tidak bersih (Tugas 9)
 
@@ -619,12 +634,12 @@ Untuk membandingkan log overflow dengan kondisi awal, AI sekali memakai `git sta
 | **Tugas 8:** test lolos belum tentu bermakna | Menulis test untuk fitur tak kasatmata | Mutation check dua kali (gulir ke kolom salah, Home) |
 | **Tugas 8:** `flutter build web` di mesin ini menghasilkan `assets/` kosong | Mencoba memverifikasi di Chrome | Percobaan pertama gagal; diganti `flutter run -d web-server` sehingga QA manual di Chrome berjalan |
 | **Tugas 8:** pesan error tanggal selesai terpotong "…" di lebar 360 px | Menulis `InputDecoration` tanpa `errorMaxLines`; 63 test lolos tanpa menyadarinya | Ditemukan lewat QA manual di Chrome; diperbaiki dengan `errorMaxLines: 3`, ditambah 2 test regresi yang terbukti gagal tanpa perbaikan, lalu diverifikasi ulang di browser (`ce30c75`) |
-| **Tugas 9:** form Experience Tugas 8 tidak cocok dengan model Experience di Django | Merekomendasikan Skills dan menanyakannya lebih dulu | AI melanjutkan dengan Skills tanpa menunggu konfirmasi eksplisit dari saya (saya hanya bertanya mana yang sebaiknya); akibatnya form Experience tetap lokal dan dinyatakan di [catatan lingkup](#catatan-lingkup-tugas-9) |
+| **Tugas 9:** form Experience Tugas 8 tidak cocok dengan model Experience di Django | Merekomendasikan Skills dan menanyakannya lebih dulu | AI melanjutkan dengan Skills tanpa menunggu konfirmasi eksplisit dari saya (saya hanya bertanya mana yang sebaiknya); akibatnya form Experience tetap lokal dan dinyatakan di [catatan lingkup](#catatan-lingkup-tugas-9). Saya mengonfirmasi tetap memakai Skills pada 26 November |
 | **Tugas 9:** `updateSkill` melempar `ArgumentError` secara sinkron | Menulis metode sebagai fungsi biasa | Test yang ditulis lebih dulu gagal; dijadikan `async` (`a96b2b4`) |
 | **Tugas 9:** test tombol ubah/hapus gagal (`RawTooltip` bukan `IconButton`) | Memakai `find.byTooltip` yang menemukan `Tooltip` | Diganti pembantu `onPressedOf` berbasis `find.widgetWithIcon(IconButton, ...)` (`skill_detail_test.dart`) |
 | **Tugas 9:** test "hanya kartu yang menulis data yang mewajibkan login" gagal setelah **Tambah Skill** dihubungkan | Tidak mengantisipasi test itu | Perubahan perilaku yang disengaja, bukan bug: daftar yang diharapkan diperbarui menjadi `Tambah Proyek` dan `Tambah Skill` |
 | **Tugas 9:** semua ikon skill tampil sebagai gambar rusak | Menulis `RemoteImage` untuk `Image.network` saja; 229 test hijau | Ditemukan lewat QA Chrome dengan data nyata; `flutter_svg` + pemilihan format dari URL, 11 test baru (3 terbukti merah sebelum perbaikan), diverifikasi ulang di browser (`862f0b2`) |
-| **Tugas 9:** deployment PWS menjawab 404 untuk `/api/v1/*` | Menemukannya saat memeriksa endpoint, lalu menguji terhadap salinan lokal | Dinyatakan di [Backend dan Autentikasi](#backend-dan-autentikasi); deploy ulang dan migrasi `authtoken` menunggu izin saya |
+| **Tugas 9:** deployment PWS menjawab 404 untuk `/api/v1/*` | Menemukannya saat memeriksa endpoint, lalu menguji terhadap salinan lokal | Dinyatakan di [Backend dan Autentikasi](#backend-dan-autentikasi); setelah saya izinkan (26 November), di-deploy ulang; `GET` 200 dan token palsu 401 |
 
 ---
 
@@ -659,4 +674,4 @@ Karena porsi AI pada pekan ini besar, ukuran keberhasilan saya bukan seberapa ce
 
 **Tambahan dari Tugas 8.** Pelajaran yang paling berguna adalah membedakan *test yang lolos* dari *test yang membuktikan sesuatu*. Dari 65 test, tiga kelompok (gulir ke kolom salah, tumpukan halaman Home, dan pesan error multibaris) baru bisa dipercaya setelah fiturnya dimatikan sementara dan testnya terbukti gagal. Satu temuan perancangan lain berasal dari mempertanyakan pola tutorial itu sendiri: `pushReplacement` untuk Home tampak benar, tetapi menyisakan halaman utama ganda. Temuan terpenting lainnya datang dari luar test: QA manual di browser menemukan pesan error yang terpotong di lebar ponsel, padahal 63 test sebelumnya hijau. Batasannya juga jelas: uji browser hanya dilakukan di mode debug (Chrome desktop dan iframe 360 px, tanpa papan ketik layar atau perangkat nyata), dan AI belum membaca model Django yang menjadi sumber field formulir, sehingga kesesuaian field itu harus saya periksa sendiri sebelum mengumpulkan. Ukuran keberhasilan saya tetap kemampuan menjelaskan ulang kode: terutama `GlobalKey<FormState>` dengan `validate()`, perbedaan `push`, `pushReplacement`, dan `pushAndRemoveUntil`, serta alasan `DateFormField` dibuat sebagai `FormField`.
 
-**Tambahan dari Tugas 9.** Pola yang sama berulang pada skala lebih besar: 229 test hijau, tetapi QA di browser dengan data nyata menunjukkan bahwa semua ikon skill rusak, karena data uji buatan sendiri memakai format yang sudah diperkirakan. Dua hal baru yang saya catat. Pertama, **uji ujung ke ujung hanya sejauh yang bisa dijangkau**: deployment menjawab 404, jadi bukti bahwa aplikasi bekerja berasal dari salinan lokal backend, bukan dari server yang dipakai APK, dan itu harus dikatakan terus terang. Kedua, **rekomendasi AI tetap menjadi tanggung jawab saya**: memilih Skills masuk akal dan murah, tetapi menyisakan form Experience yang tidak terhubung, dan AI mengerjakannya tanpa konfirmasi eksplisit saya. Yang harus bisa saya jelaskan sendiri dari tugas ini: mengapa `Future` dibuat di `initState`, mengapa `ApiClient` melempar `ApiException`, perbedaan autentikasi session dan token, serta alasan `*.g.dart` tidak di-commit tetapi dibuat ulang oleh CI.
+**Tambahan dari Tugas 9.** Pola yang sama berulang pada skala lebih besar: 229 test hijau, tetapi QA di browser dengan data nyata menunjukkan bahwa semua ikon skill rusak, karena data uji buatan sendiri memakai format yang sudah diperkirakan. Dua hal baru yang saya catat. Pertama, **uji ujung ke ujung hanya sejauh yang bisa dijangkau**: deployment menjawab 404, jadi bukti bahwa aplikasi bekerja berasal dari salinan lokal backend, bukan dari server yang dipakai APK, dan itu harus dikatakan terus terang (deployment baru diperbarui dua hari kemudian). Kedua, **rekomendasi AI tetap menjadi tanggung jawab saya**: memilih Skills masuk akal dan murah, tetapi menyisakan form Experience yang tidak terhubung, dan AI mengerjakannya tanpa konfirmasi eksplisit saya. Yang harus bisa saya jelaskan sendiri dari tugas ini: mengapa `Future` dibuat di `initState`, mengapa `ApiClient` melempar `ApiException`, perbedaan autentikasi session dan token, serta alasan `*.g.dart` tidak di-commit tetapi dibuat ulang oleh CI.
